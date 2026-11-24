@@ -26,10 +26,10 @@ Code Blocks with scripts and Code Injection both need a Core plan or higher.
 
 ### 1. Host the script
 
-The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.4.0):
+The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.4.1):
 
 ```
-https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.4.0/case-study-cards.min.js
+https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.4.1/case-study-cards.min.js
 ```
 
 jsDelivr creates the `.min.js` version automatically. Because the URL is pinned to a version, edits only go live when you publish a new release and update the URL in Code Injection.
@@ -38,7 +38,7 @@ To release a change:
 
 ```bash
 git commit -am "Describe the change"
-git tag 1.4.1
+git tag 1.4.2
 git push origin main --tags
 ```
 
@@ -53,7 +53,7 @@ Go to Settings → Developer Tools → Code Injection → Header and paste:
   case-study-card:not(:defined) { display: block; min-height: 420px; border-radius: 20px; background: #fff; border: 1px solid rgba(24,42,57,.12); }
   case-study-card:not(:defined) > * { visibility: hidden; }
 </style>
-<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.4.0/case-study-cards.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.4.1/case-study-cards.min.js" defer></script>
 ```
 
 The style rule shows a grey placeholder for the split second before the script loads.
@@ -213,7 +213,7 @@ Content for real (and password-protected) project pages is kept in the git-ignor
 
 ## Site footer
 
-Put one Code Block in Squarespace's global footer (Pages → Footer → Edit). The projects are plain links inside the element; the component turns them into compact cards, leaves out the page you're on, and hides the list on the homepage (`hide-projects-on="/"`, comma-separated paths).
+Put one Code Block in Squarespace's global footer (Pages → Footer → Edit). The projects are plain links inside the element; the component turns them into compact cards and highlights the page you're on ("You're here", `aria-current="page"`). Add `exclude-current` to leave it out instead, or `hide-projects-on="/"` (comma-separated paths) to hide the list on certain pages.
 
 ```html
 <case-study-footer name="Your Name" role="Your role" email="you@example.com" linkedin="https://www.linkedin.com/in/…">

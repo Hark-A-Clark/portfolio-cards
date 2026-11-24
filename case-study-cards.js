@@ -1125,6 +1125,15 @@
     .proj-company { display: block; margin-top: 4px; color: var(--_on-muted); font-size: 13px; line-height: 1.3; }
     .go { width: 16px; height: 16px; color: var(--_on-muted); transition: transform .25s ease, color .25s ease; }
     .proj:hover .go { transform: translateX(3px); color: var(--_on); }
+    /* the page you're on */
+    .proj.is-current { background: rgba(143, 221, 227, .12); border-color: var(--_on-accent); box-shadow: inset 3px 0 0 var(--_on-accent); }
+    .proj.is-current:hover { background: rgba(143, 221, 227, .16); border-color: var(--_on-accent); }
+    .here {
+      align-self: center; white-space: nowrap;
+      padding: 4px 9px; border-radius: var(--_pill);
+      background: var(--_on-accent); color: #0b1a26;
+      font: 700 11px/1 var(--_body-font); letter-spacing: .04em; text-transform: uppercase;
+    }
 
     /* contact */
     .contact { display: flex; flex-direction: column; gap: 6px; }
@@ -1157,7 +1166,7 @@
   `;
 
   class CaseStudyFooter extends HTMLElement {
-    static get observedAttributes() { return ['name', 'role', 'email', 'linkedin', 'heading', 'hide-projects-on', 'current']; }
+    static get observedAttributes() { return ['name', 'role', 'email', 'linkedin', 'heading', 'hide-projects-on', 'current', 'exclude-current', 'current-label']; }
 
     constructor() {
       super();
@@ -1172,22 +1181,25 @@
       const a = (n, d = '') => this.getAttribute(n) ?? d;
       const norm = (p) => (p || '/').replace(/\/+$/, '') || '/';
       const here = norm(a('current') || location.pathname);
-      const hideOn = a('hide-projects-on', '/').split(',').map((s) => norm(s.trim()));
+      // every project shows on every page; the one you're on is highlighted (or left out with exclude-current)
+      const hideOn = a('hide-projects-on', '').split(',').map((x) => x.trim()).filter(Boolean).map(norm);
+      const exclude = this.hasAttribute('exclude-current');
       // projects are plain links inside the element, so they also work for search engines and without JS
       const projects = hideOn.includes(here) ? [] : [...this.querySelectorAll('a[href]')]
-        .filter((el) => norm(new URL(el.href, location.href).pathname) !== here)
-        .map((el) => ({ href: el.getAttribute('href'), title: el.textContent.trim(), company: el.dataset.company || '', poster: el.dataset.poster || '' }));
+        .map((el) => ({ href: el.getAttribute('href'), title: el.textContent.trim(), company: el.dataset.company || '', poster: el.dataset.poster || '',
+          current: norm(new URL(el.href, location.href).pathname) === here }))
+        .filter((p) => !(exclude && p.current));
 
       const email = a('email'), linkedin = a('linkedin');
       this.shadowRoot.innerHTML = `
         <style>${FOOTER_CSS}</style>
         <div class="band${projects.length ? ' with-projects' : ''}" part="band">
           ${projects.length ? `<nav class="projects" aria-labelledby="mp">
-            <h2 class="eyebrow" id="mp">${esc(a('heading', 'More projects'))}</h2>
-            <ul>${projects.map((p) => `<li><a class="proj" href="${esc(p.href)}">
+            <h2 class="eyebrow" id="mp">${esc(a('heading', 'Projects'))}</h2>
+            <ul>${projects.map((p) => `<li><a class="proj${p.current ? ' is-current' : ''}" href="${esc(p.href)}"${p.current ? ' aria-current="page"' : ''}>
               ${p.poster ? `<img class="thumb" src="${esc(p.poster)}" alt="" loading="lazy" decoding="async">` : '<span class="thumb"></span>'}
               <span><span class="proj-title">${esc(p.title)}</span>${p.company ? `<span class="proj-company">${esc(p.company)}</span>` : ''}</span>
-              <span class="go">${FOOTER_ICON.arrow}</span></a></li>`).join('')}</ul>
+              ${p.current ? `<span class="here">${esc(a('current-label', "You're here"))}</span>` : `<span class="go">${FOOTER_ICON.arrow}</span>`}</a></li>`).join('')}</ul>
           </nav>` : ''}
           <div class="contact">
             ${projects.length ? '<h2 class="eyebrow">Get in touch</h2>' : ''}
