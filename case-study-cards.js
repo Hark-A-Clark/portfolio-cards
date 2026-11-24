@@ -1079,6 +1079,7 @@
   const FOOTER_ICON = {
     mail: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.75" y="3.25" width="12.5" height="9.5" rx="1.75" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m2.5 4.5 5.5 4.25 5.5-4.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
     linkedin: '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3.6 5.9h2v6.6h-2zM4.6 2.75a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3zM7 5.9h1.9v.9h.03c.27-.5.92-1.04 1.9-1.04 2.03 0 2.4 1.33 2.4 3.07v3.67h-2V9.25c0-.78-.01-1.78-1.08-1.78-1.09 0-1.25.85-1.25 1.72v3.31H7z"/></svg>',
+    unlock: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.25 7V5.25a2.75 2.75 0 0 1 5.35-.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="3" y="7" width="10" height="7.25" rx="1.75" fill="currentColor"/></svg>',
     arrow: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9.5M8.75 4.25 12.5 8l-3.75 3.75" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   };
 
@@ -1136,6 +1137,7 @@
     .pill svg { width: 10px; height: 10px; flex: none; }
     .viewing { background: var(--_on-accent); color: #0b1a26; }
     .locked { background: rgba(255, 255, 255, .14); color: var(--_on); }
+    .unlocked { background: transparent; color: var(--_on-accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--_on-accent) 60%, transparent); }
     /* the page you're on */
     .proj.is-current { background: color-mix(in srgb, var(--_on-accent) 14%, #1b2e3c); border-color: var(--_on-accent); }
 
@@ -1170,15 +1172,44 @@
   `;
 
   class CaseStudyFooter extends HTMLElement {
-    static get observedAttributes() { return ['name', 'role', 'email', 'linkedin', 'heading', 'hide-projects-on', 'current', 'exclude-current', 'current-label']; }
+    static get observedAttributes() { return ['name', 'role', 'email', 'linkedin', 'heading', 'hide-projects-on', 'current', 'exclude-current', 'current-label', 'no-unlock-check']; }
 
     constructor() {
       super();
       this.attachShadow({ mode: 'open' });
       this._mo = new MutationObserver(() => this._render());
+      this._unlocked = new Set(); // paths this visitor has already entered the password for
+      try { JSON.parse(sessionStorage.getItem('csc-unlocked') || '[]').forEach((p) => this._unlocked.add(p)); } catch (e) { /* storage blocked */ }
     }
-    connectedCallback() { this._render(); this._mo.observe(this, { childList: true, subtree: true, attributes: true }); }
-    disconnectedCallback() { this._mo.disconnect(); }
+    connectedCallback() {
+      this._render();
+      this._mo.observe(this, { childList: true, subtree: true, attributes: true });
+      // check the locked projects once the footer is close to the screen, not on page load
+      this._io = new IntersectionObserver((entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        this._io.disconnect();
+        this._checkLocks();
+      }, { rootMargin: '600px 0px' });
+      this._io.observe(this);
+    }
+    disconnectedCallback() { this._mo.disconnect(); this._io?.disconnect(); }
+
+    _remember(path) {
+      this._unlocked.add(path);
+      try { sessionStorage.setItem('csc-unlocked', JSON.stringify([...this._unlocked])); } catch (e) { /* storage blocked */ }
+    }
+
+    /* A Squarespace password page answers 401 until the visitor has entered its password, then 200. */
+    async _checkLocks() {
+      if (this.hasAttribute('no-unlock-check')) return;
+      const todo = (this._projects || []).filter((p) => p.locked && !p.unlocked && p.sameOrigin);
+      if (!todo.length) return;
+      const results = await Promise.all(todo.map((p) =>
+        fetch(p.path, { method: 'HEAD', credentials: 'same-origin', cache: 'no-store', redirect: 'follow' })
+          .then((r) => (r.ok ? p.path : null)).catch(() => null)));
+      const opened = results.filter(Boolean);
+      if (opened.length) { opened.forEach((p) => this._remember(p)); this._render(); }
+    }
     attributeChangedCallback() { if (this.isConnected) this._render(); }
 
     _render() {
@@ -1190,10 +1221,16 @@
       const exclude = this.hasAttribute('exclude-current');
       // projects are plain links inside the element, so they also work for search engines and without JS
       const projects = hideOn.includes(here) ? [] : [...this.querySelectorAll('a[href]')]
-        .map((el) => ({ href: el.getAttribute('href'), title: el.textContent.trim(), company: el.dataset.company || '',
-          color: el.dataset.color || '', locked: el.hasAttribute('data-protected'),
-          current: norm(new URL(el.href, location.href).pathname) === here }))
+        .map((el) => {
+          const url = new URL(el.href, location.href), path = norm(url.pathname), current = path === here;
+          // you can only be reading a password page after entering its password
+          if (current && el.hasAttribute('data-protected')) this._remember(path);
+          return { href: el.getAttribute('href'), title: el.textContent.trim(), company: el.dataset.company || '',
+            color: el.dataset.color || '', locked: el.hasAttribute('data-protected'), unlocked: this._unlocked.has(path),
+            path, sameOrigin: url.origin === location.origin, current };
+        })
         .filter((p) => !(exclude && p.current));
+      this._projects = projects;
 
       const email = a('email'), linkedin = a('linkedin');
       this.shadowRoot.innerHTML = `
@@ -1202,7 +1239,9 @@
           ${projects.length ? `<nav class="projects" aria-labelledby="mp">
             <h2 class="eyebrow" id="mp">${esc(a('heading', 'Projects'))}</h2>
             <ul>${projects.map((p) => `<li><a class="proj${p.current ? ' is-current' : ''}" href="${esc(p.href)}"${p.current ? ' aria-current="page"' : ''}${/^#[0-9a-f]{3,8}$/i.test(p.color) ? ` style="--_c:${p.color}"` : ''}>
-              <span>${p.current || p.locked ? `<span class="proj-tags">${p.current ? `<span class="pill viewing">${esc(a('current-label', 'Viewing'))}</span>` : ''}${p.locked ? `<span class="pill locked">${ICON.lock}<span aria-hidden="true">Locked</span><span class="sr">Password protected</span></span>` : ''}</span>` : ''}<span class="proj-title">${esc(p.title)}</span>${p.company ? `<span class="proj-company">${esc(p.company)}</span>` : ''}</span>
+              <span>${p.current || p.locked ? `<span class="proj-tags">${p.current ? `<span class="pill viewing">${esc(a('current-label', 'Viewing'))}</span>` : ''}${p.locked ? (p.unlocked
+                ? `<span class="pill unlocked">${FOOTER_ICON.unlock}<span aria-hidden="true">Unlocked</span><span class="sr">Password entered</span></span>`
+                : `<span class="pill locked">${ICON.lock}<span aria-hidden="true">Locked</span><span class="sr">Password protected</span></span>`) : ''}</span>` : ''}<span class="proj-title">${esc(p.title)}</span>${p.company ? `<span class="proj-company">${esc(p.company)}</span>` : ''}</span>
               ${p.current ? '' : `<span class="go">${FOOTER_ICON.arrow}</span>`}</a></li>`).join('')}</ul>
           </nav>` : ''}
           <div class="contact">
