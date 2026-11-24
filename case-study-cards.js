@@ -820,6 +820,7 @@
       --_on-muted: rgba(255, 255, 255, .78);
       --_on-line: rgba(255, 255, 255, .2);
       --_on-accent: var(--csc-header-accent, #8fdde3);
+      --_solid: var(--csc-header-solid, min(58cqi, 680px));
       display: block;
       container-type: inline-size;
       color: var(--_on);
@@ -841,14 +842,47 @@
       isolation: isolate;
     }
     .media { position: absolute; inset: 0; z-index: -2; background: var(--_media-bg); }
-    .media img, .media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% 50%; display: block; }
+    /* the whole demo stays in view, a little smaller than the header, pinned right */
+    .media img, .media video {
+      position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+      object-fit: contain; object-position: right center;
+      transform: scale(var(--csc-header-media-scale, .92)); transform-origin: 96% 50%;
+    }
     .media video { opacity: 0; transition: opacity .4s ease; }
     :host([data-playing]) .media video { opacity: 1; }
+
+    /* --_solid: how far the darkest part reaches; by default exactly the text column */
     .scrim {
       position: absolute; inset: 0; z-index: -1; pointer-events: none;
       background: linear-gradient(90deg,
-        rgba(var(--_overlay), .9) 0%, rgba(var(--_overlay), .86) 42%,
-        rgba(var(--_overlay), .45) 66%, rgba(var(--_overlay), .12) 100%);
+        rgba(var(--_overlay), .95) 0, rgba(var(--_overlay), .95) var(--_solid),
+        rgba(var(--_overlay), .5) calc(var(--_solid) + 16cqi), rgba(var(--_overlay), .12) 100%);
+    }
+
+    /* texture="frosted halftone grain" (any combination): finishes on top of the scrim */
+    .blur, .texture { position: absolute; inset: 0; z-index: -1; pointer-events: none; display: none; }
+    .blur, .texture { -webkit-mask-image: var(--_mask); mask-image: var(--_mask); }
+    :host([texture~="frosted"]) .blur {
+      display: block;
+      -webkit-backdrop-filter: blur(16px) saturate(1.15); backdrop-filter: blur(16px) saturate(1.15);
+      --_mask: linear-gradient(90deg, #000 0, #000 var(--_solid), transparent calc(var(--_solid) + 18cqi));
+    }
+    :host([texture~="halftone"]) .texture, :host([texture~="grain"]) .texture { display: block; }
+    :host([texture~="halftone"]) .texture {
+      background-image: radial-gradient(circle at center, rgba(var(--_overlay), .95) 0 1.4px, transparent 1.9px);
+      background-size: 6px 6px;
+      /* one column of a 12-column grid, starting where the text column ends */
+      --_band: var(--csc-header-halftone-width, calc(100cqi / 12));
+      --_mask: linear-gradient(90deg, transparent var(--_solid), #000 calc(var(--_solid) + var(--_band) / 2), transparent calc(var(--_solid) + var(--_band)));
+    }
+    :host([texture~="grain"]) .texture {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 160px;
+      opacity: var(--csc-header-grain, .24);
+      --_mask: linear-gradient(90deg, #000 0, #000 calc(var(--_solid) + 8cqi), transparent calc(var(--_solid) + 30cqi));
+    }
+    :host([texture~="halftone"][texture~="grain"]) .texture {
+      background-image: radial-gradient(circle at center, rgba(var(--_overlay), .95) 0 1.4px, transparent 1.9px);
     }
 
     .content {
@@ -927,16 +961,18 @@
 
     /* phones and narrow blocks: the demo shows clearly across the top, then fades into the scrim under the text */
     @container (max-width: 760px) {
-      .hero { align-items: flex-end; min-height: 0; }
+      .hero { align-items: flex-end; min-height: 0; background: rgb(var(--_overlay)); }
       .media { inset: 0 0 auto 0; aspect-ratio: 16 / 9; }
-      .media img, .media video { object-position: 50% 50%; }
+      .media img, .media video { object-fit: cover; object-position: 50% 50%; transform: none; }
       .scrim {
         background: linear-gradient(180deg,
-          rgba(var(--_overlay), .05) 0, rgba(var(--_overlay), .2) 32cqi,
-          rgba(var(--_overlay), .94) 54cqi, rgb(var(--_overlay)) 100%);
+          rgba(var(--_overlay), .05) 0, rgba(var(--_overlay), .2) 30cqi,
+          rgba(var(--_overlay), .95) 54cqi, rgb(var(--_overlay)) 100%);
       }
-      .hero { background: rgb(var(--_overlay)); }
       .content { width: 100%; padding: calc(42cqi) 20px 24px; }
+      :host([texture~="frosted"]) .blur { --_mask: linear-gradient(180deg, transparent 24cqi, #000 50cqi); }
+      :host([texture~="halftone"]) .texture { --_mask: linear-gradient(180deg, transparent 30cqi, #000 37cqi, transparent 44cqi); }
+      :host([texture~="grain"]) .texture { --_mask: linear-gradient(180deg, transparent 20cqi, #000 52cqi); }
     }
     @container (max-width: 520px) { .facts { grid-template-columns: 1fr 1fr; } .facts > div:first-child { grid-column: 1 / -1; } }
 
@@ -950,7 +986,7 @@
   class CaseStudyHeader extends HTMLElement {
     static get observedAttributes() {
       return ['status', 'role', 'duration', 'platforms', 'tools', 'features', 'max-features', 'company',
-        'protected', 'confidential', 'industry', 'feature', 'video', 'poster', 'media-color'];
+        'protected', 'confidential', 'industry', 'feature', 'video', 'poster', 'media-color', 'texture'];
     }
 
     constructor() {
@@ -963,7 +999,7 @@
             <img class="poster" alt="" decoding="async" fetchpriority="high">
             <video muted playsinline loop preload="none" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
           </div>
-          <div class="scrim"></div>
+          <div class="blur"></div><div class="scrim"></div><div class="texture"></div>
           <div class="content">
             <slot name="title"></slot>
             <div class="details"></div>
