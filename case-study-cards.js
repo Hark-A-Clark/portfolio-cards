@@ -1,5 +1,5 @@
 /*!
- * Case Study Cards — <case-study-card> + <case-study-grid> + <case-study-header>
+ * Case Study Cards — <case-study-card> + <case-study-grid> + <case-study-header> + <case-study-footer>
  * Self-contained web components for embedding in Squarespace (or any site).
  * Styles live in Shadow DOM, so nothing here can restyle the host site and
  * the host site's CSS can't break the cards.
@@ -1072,7 +1072,138 @@
     }
   }
 
+  /* ------------------------------------------------------------------ */
+  /* <case-study-footer>: more projects + contact, for the site footer  */
+  /* ------------------------------------------------------------------ */
+
+  const FOOTER_ICON = {
+    mail: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.75" y="3.25" width="12.5" height="9.5" rx="1.75" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m2.5 4.5 5.5 4.25 5.5-4.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+    linkedin: '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3.6 5.9h2v6.6h-2zM4.6 2.75a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3zM7 5.9h1.9v.9h.03c.27-.5.92-1.04 1.9-1.04 2.03 0 2.4 1.33 2.4 3.07v3.67h-2V9.25c0-.78-.01-1.78-1.08-1.78-1.09 0-1.25.85-1.25 1.72v3.31H7z"/></svg>',
+    arrow: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9.5M8.75 4.25 12.5 8l-3.75 3.75" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  };
+
+  const FOOTER_CSS = /* css */ `
+    :host {
+      ${TOKENS}
+      --_bg: var(--csc-footer-bg, #10212e);
+      --_on: #ffffff;
+      --_on-muted: rgba(255, 255, 255, .76);
+      --_on-line: rgba(255, 255, 255, .14);
+      --_on-accent: var(--csc-footer-accent, #8fdde3);
+      display: block;
+      container-type: inline-size;
+      color: var(--_on);
+      font-family: var(--_body-font);
+      text-align: start;
+      -webkit-font-smoothing: antialiased;
+    }
+    * { box-sizing: border-box; }
+    ul { list-style: none; margin: 0; padding: 0; }
+    .band {
+      display: grid; gap: 36px 56px;
+      padding: clamp(28px, 4.5cqi, 56px);
+      background: var(--_bg);
+      border-radius: var(--_card-radius);
+    }
+    .eyebrow { margin: 0 0 16px; color: var(--_on-accent); font: 700 12px/1 var(--_body-font); letter-spacing: .1em; text-transform: uppercase; }
+
+    /* more projects: compact cards */
+    .projects ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 12px; }
+    .proj {
+      display: grid; grid-template-columns: 104px minmax(0, 1fr) auto; align-items: center; gap: 14px;
+      height: 100%; padding: 10px 14px 10px 10px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid var(--_on-line);
+      color: var(--_on); text-decoration: none;
+      transition: background-color .25s ease, border-color .25s ease;
+    }
+    .proj:hover { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .3); }
+    .proj:focus-visible { outline: 3px solid var(--_on-accent); outline-offset: 2px; }
+    .thumb { aspect-ratio: 16 / 9; width: 100%; border-radius: 8px; object-fit: cover; background: rgba(255, 255, 255, .08); display: block; }
+    .proj-title { display: block; font: 400 1.12rem/1.2 var(--_heading-font); letter-spacing: -0.01em; }
+    .proj-company { display: block; margin-top: 4px; color: var(--_on-muted); font-size: 13px; line-height: 1.3; }
+    .go { width: 16px; height: 16px; color: var(--_on-muted); transition: transform .25s ease, color .25s ease; }
+    .proj:hover .go { transform: translateX(3px); color: var(--_on); }
+
+    /* contact */
+    .contact { display: flex; flex-direction: column; gap: 6px; }
+    .name { margin: 0; font: 400 clamp(1.5rem, 3cqi, 2rem)/1.1 var(--_heading-font); letter-spacing: -0.015em; }
+    .role { margin: 0; color: var(--_on-muted); font-size: .98rem; line-height: 1.45; }
+    .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      min-height: 44px; padding: 0 20px;
+      border: 2px solid rgba(255, 255, 255, .85); border-radius: var(--_pill);
+      color: var(--_on); text-decoration: none;
+      font: 700 15px/1 var(--_body-font);
+      transition: background-color .25s ease, color .25s ease;
+    }
+    .btn svg { width: 16px; height: 16px; flex: none; }
+    .btn:hover { background: var(--_on); color: var(--_bg); }
+    .btn:focus-visible { outline: 3px solid var(--_on-accent); outline-offset: 3px; }
+
+    @container (min-width: 900px) {
+      .band.with-projects { grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); }
+      .band.with-projects .contact { padding-left: 40px; border-left: 1px solid var(--_on-line); }
+      .band:not(.with-projects) .contact { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 32px; }
+      .band:not(.with-projects) .links { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
+    }
+    @container (max-width: 899px) {
+      .band.with-projects .contact { padding-top: 28px; border-top: 1px solid var(--_on-line); }
+    }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    @media (prefers-reduced-motion: reduce) { .proj, .go, .btn { transition: none; } }
+  `;
+
+  class CaseStudyFooter extends HTMLElement {
+    static get observedAttributes() { return ['name', 'role', 'email', 'linkedin', 'heading', 'hide-projects-on', 'current']; }
+
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'open' });
+      this._mo = new MutationObserver(() => this._render());
+    }
+    connectedCallback() { this._render(); this._mo.observe(this, { childList: true, subtree: true, attributes: true }); }
+    disconnectedCallback() { this._mo.disconnect(); }
+    attributeChangedCallback() { if (this.isConnected) this._render(); }
+
+    _render() {
+      const a = (n, d = '') => this.getAttribute(n) ?? d;
+      const norm = (p) => (p || '/').replace(/\/+$/, '') || '/';
+      const here = norm(a('current') || location.pathname);
+      const hideOn = a('hide-projects-on', '/').split(',').map((s) => norm(s.trim()));
+      // projects are plain links inside the element, so they also work for search engines and without JS
+      const projects = hideOn.includes(here) ? [] : [...this.querySelectorAll('a[href]')]
+        .filter((el) => norm(new URL(el.href, location.href).pathname) !== here)
+        .map((el) => ({ href: el.getAttribute('href'), title: el.textContent.trim(), company: el.dataset.company || '', poster: el.dataset.poster || '' }));
+
+      const email = a('email'), linkedin = a('linkedin');
+      this.shadowRoot.innerHTML = `
+        <style>${FOOTER_CSS}</style>
+        <div class="band${projects.length ? ' with-projects' : ''}" part="band">
+          ${projects.length ? `<nav class="projects" aria-labelledby="mp">
+            <h2 class="eyebrow" id="mp">${esc(a('heading', 'More projects'))}</h2>
+            <ul>${projects.map((p) => `<li><a class="proj" href="${esc(p.href)}">
+              ${p.poster ? `<img class="thumb" src="${esc(p.poster)}" alt="" loading="lazy" decoding="async">` : '<span class="thumb"></span>'}
+              <span><span class="proj-title">${esc(p.title)}</span>${p.company ? `<span class="proj-company">${esc(p.company)}</span>` : ''}</span>
+              <span class="go">${FOOTER_ICON.arrow}</span></a></li>`).join('')}</ul>
+          </nav>` : ''}
+          <div class="contact">
+            ${projects.length ? '<h2 class="eyebrow">Get in touch</h2>' : ''}
+            ${a('name') ? `<p class="name">${esc(a('name'))}</p>` : ''}
+            ${a('role') ? `<p class="role">${esc(a('role'))}</p>` : ''}
+            <ul class="links">
+              ${email ? `<li><a class="btn" href="mailto:${esc(email)}">${FOOTER_ICON.mail}Email</a></li>` : ''}
+              ${linkedin ? `<li><a class="btn" href="${esc(linkedin)}" target="_blank" rel="noopener">${FOOTER_ICON.linkedin}LinkedIn<span class="sr"> (opens in a new tab)</span></a></li>` : ''}
+            </ul>
+          </div>
+        </div>`;
+    }
+  }
+
   customElements.define('case-study-card', CaseStudyCard);
   if (!customElements.get('case-study-grid')) customElements.define('case-study-grid', CaseStudyGrid);
   if (!customElements.get('case-study-header')) customElements.define('case-study-header', CaseStudyHeader);
+  if (!customElements.get('case-study-footer')) customElements.define('case-study-footer', CaseStudyFooter);
 })();

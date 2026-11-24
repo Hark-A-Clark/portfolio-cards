@@ -1,9 +1,10 @@
 # Case Study Cards
 
-Three web components for showing case studies on a Squarespace site:
+Four web components for showing case studies on a Squarespace site:
 
 - `<case-study-card>`: one card with an animated demo, status, company › product › feature, a password and NDA label, year and platforms.
 - `<case-study-header>`: the hero at the top of a project page, with the demo playing behind the details.
+- `<case-study-footer>`: a site-wide footer that combines "more projects" with contact links.
 - `<case-study-grid>`: lays the cards out and adds a small code-snippet credit ("designed by … built with Claude") in the gap after the last card.
 
 Each card keeps its styles in Shadow DOM, so the cards and Squarespace can't restyle each other. Titles and descriptions are ordinary HTML in the page, so search engines can read them.
@@ -25,10 +26,10 @@ Code Blocks with scripts and Code Injection both need a Core plan or higher.
 
 ### 1. Host the script
 
-The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.3.2):
+The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.4.0):
 
 ```
-https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.3.2/case-study-cards.min.js
+https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.4.0/case-study-cards.min.js
 ```
 
 jsDelivr creates the `.min.js` version automatically. Because the URL is pinned to a version, edits only go live when you publish a new release and update the URL in Code Injection.
@@ -37,11 +38,11 @@ To release a change:
 
 ```bash
 git commit -am "Describe the change"
-git tag 1.3.3
+git tag 1.4.1
 git push origin main --tags
 ```
 
-Then change the version in the URL (for example `@1.3.2` to `@1.2.2`) in Code Injection.
+Then change the version in the URL (for example `@1.4.0` to `@1.2.2`) in Code Injection.
 
 ### 2. Add the header code once
 
@@ -52,7 +53,7 @@ Go to Settings → Developer Tools → Code Injection → Header and paste:
   case-study-card:not(:defined) { display: block; min-height: 420px; border-radius: 20px; background: #fff; border: 1px solid rgba(24,42,57,.12); }
   case-study-card:not(:defined) > * { visibility: hidden; }
 </style>
-<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.3.2/case-study-cards.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.4.0/case-study-cards.min.js" defer></script>
 ```
 
 The style rule shows a grey placeholder for the split second before the script loads.
@@ -209,3 +210,16 @@ Fine-tuning, in Design → Custom CSS on `case-study-header`: `--csc-header-soli
 On blocks narrower than 760px the demo shows across the top and fades into the scrim under the text. The demo plays while the header is on screen and never loads for visitors who turn off animation. Use the `h1` for the project name and remove Squarespace's own page title text so it isn't repeated.
 
 Content for real (and password-protected) project pages is kept in the git-ignored `private/` folder, so it never lands in this public repo.
+
+## Site footer
+
+Put one Code Block in Squarespace's global footer (Pages → Footer → Edit). The projects are plain links inside the element; the component turns them into compact cards, leaves out the page you're on, and hides the list on the homepage (`hide-projects-on="/"`, comma-separated paths).
+
+```html
+<case-study-footer name="Your Name" role="Your role" email="you@example.com" linkedin="https://www.linkedin.com/in/…">
+  <a href="/project-one" data-company="Company" data-poster="…/project-one.jpg">Project One</a>
+  <a href="/project-two" data-company="Company" data-poster="…/project-two.jpg">Project Two</a>
+</case-study-footer>
+```
+
+`tools/build-snippets.py` writes the real one to `private/squarespace-footer.html`, reading your contact details from `private/contact.json` so they stay out of this repo. Colours: `--csc-footer-bg` (default `#10212e`, the same navy as the project header) and `--csc-footer-accent`.

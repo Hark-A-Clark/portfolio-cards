@@ -1,6 +1,6 @@
 """Builds the Squarespace Code Block and the demo page's grid from one list of cards.
 usage: python3 tools/build-snippets.py <release-version>"""
-import sys, re, html, pathlib
+import sys, re, html, json, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 VERSION = sys.argv[1]
 CDN = f"https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@{VERSION}/media"
@@ -50,3 +50,13 @@ grid = "".join(card(c, "../media", 10) for c in CARDS)
 s = re.sub(r'<case-study-grid id="grid"[^>]*>\n.*?(\s*</case-study-grid>)', lambda m: GRID.replace("<case-study-grid ", '<case-study-grid id="grid" ') + grid.rstrip("\n") + m.group(1), s, count=1, flags=re.S)
 demo.write_text(s)
 print("built for", VERSION)
+
+# Site-wide footer: the same five projects, as plain links the component turns into compact cards
+_contact_file = ROOT / "private" / "contact.json"  # name, role, email, linkedin: kept out of the public repo
+CONTACT = json.loads(_contact_file.read_text()) if _contact_file.exists() else {"name": "Your Name", "role": "Your role", "email": "you@example.com", "linkedin": "https://www.linkedin.com/"}
+FOOTER = (f'<case-study-footer name="{html.escape(CONTACT["name"], quote=True)}" role="{html.escape(CONTACT["role"], quote=True)}"\n'
+          f'  email="{html.escape(CONTACT["email"], quote=True)}" linkedin="{html.escape(CONTACT["linkedin"], quote=True)}">\n'
+          + "".join(f'  <a href="{c["href"]}" data-company="{html.escape(c["company"], quote=True)}" data-poster="{CDN}/{c["media"]}.jpg">{html.escape(c["title"])}</a>\n' for c in CARDS)
+          + '</case-study-footer>\n')
+(ROOT / "private").mkdir(exist_ok=True)
+(ROOT / "private" / "squarespace-footer.html").write_text(FOOTER)  # holds contact details, so kept out of the public repo
