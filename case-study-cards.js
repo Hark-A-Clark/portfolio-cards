@@ -1089,8 +1089,11 @@
       --_bg: var(--csc-footer-bg, #00adb8);           /* the site's own teal (Squarespace accent) */
       --_ink: var(--csc-footer-ink, #10212e);         /* navy text on the teal: 6:1 */
       --_ink-line: rgba(16, 33, 46, .25);
-      --_card-bg: var(--csc-footer-card-bg, #006a72); /* deep teal cards, white text 6.3:1 */
-      --_card-label: #d6f5f7;
+      --_card-bg: var(--csc-footer-card-bg, #ffffff); /* white cards, navy text */
+      --_card-ink: var(--csc-footer-card-ink, #10212e);
+      --_card-muted: #415d77;
+      --_card-accent: #007c85;
+      --_name: var(--csc-footer-name, #ffffff);
       --_eyebrow: var(--csc-footer-label, var(--_ink));
       --_on: #ffffff;
       --_on-muted: rgba(255, 255, 255, .82);
@@ -1122,34 +1125,34 @@
       height: 100%; padding: 14px 16px;
       border-radius: 12px;
       background: var(--_card-bg);
-      border: 1px solid var(--_on-line);
+      border: 1px solid rgba(16, 33, 46, .14);
       box-shadow: 6px 6px 0 var(--_shadow);
-      color: var(--_on); text-decoration: none;
+      color: var(--_card-ink); text-decoration: none;
       transition: transform .3s var(--_ease), box-shadow .3s var(--_ease), border-color .25s ease;
     }
-    .proj:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--_shadow); border-color: rgba(255, 255, 255, .3); }
+    .proj:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--_shadow); border-color: rgba(16, 33, 46, .35); }
     .proj:focus-visible { outline: 3px solid var(--_ink); outline-offset: 3px; }
     .proj-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .proj-title { display: block; font: 400 1.12rem/1.2 var(--_heading-font); letter-spacing: -0.01em; }
-    .proj-company { display: block; margin-top: 4px; color: var(--_on-muted); font-size: 13px; line-height: 1.3; }
-    .go { width: 16px; height: 16px; color: var(--_on-muted); transition: transform .25s ease, color .25s ease; }
-    .proj:hover .go { transform: translateX(3px); color: var(--_on); }
+    .proj-company { display: block; margin-top: 4px; color: var(--_card-muted); font-size: 13px; line-height: 1.3; }
+    .go { width: 16px; height: 16px; color: var(--_card-muted); transition: transform .25s ease, color .25s ease; }
+    .proj:hover .go { transform: translateX(3px); color: var(--_card-ink); }
     .pill {
       display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
       height: 20px; padding: 0 8px; border-radius: var(--_pill);
       font: 700 11px/1 var(--_body-font); letter-spacing: .05em; text-transform: uppercase;
     }
     .pill svg { width: 10px; height: 10px; flex: none; }
-    .viewing { background: var(--_on-accent); color: #0b1a26; }
-    .locked { background: rgba(255, 255, 255, .14); color: var(--_on); }
-    .unlocked { background: transparent; color: var(--_card-label); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--_card-label) 65%, transparent); }
+    .viewing { background: var(--_card-accent); color: #ffffff; }
+    .locked { background: rgba(16, 33, 46, .08); color: var(--_card-ink); }
+    .unlocked { background: transparent; color: var(--_card-accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--_card-accent) 55%, transparent); }
     /* the page you're on */
-    .proj.is-current { border: 2px solid var(--_on-accent); padding: 13px 15px; }
+    .proj.is-current { border: 2px solid var(--_card-accent); padding: 13px 15px; }
 
     /* contact */
     .contact { display: flex; flex-direction: column; gap: 6px; }
-    .name { margin: 0; font: 400 clamp(1.5rem, 3cqi, 2rem)/1.1 var(--_heading-font); letter-spacing: -0.015em; }
-    .role { margin: 0; color: var(--_ink); font-size: .98rem; line-height: 1.45; }
+    .name { margin: 0; color: var(--_name); font: 400 clamp(1.5rem, 3cqi, 2rem)/1.1 var(--_heading-font); letter-spacing: -0.015em; }
+    .role { margin: 0; color: var(--_name); font-size: .98rem; line-height: 1.45; }
     .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
     .btn {
       display: inline-flex; align-items: center; gap: 8px;

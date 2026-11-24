@@ -26,10 +26,10 @@ Code Blocks with scripts and Code Injection both need a Core plan or higher.
 
 ### 1. Host the script
 
-The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.4.5):
+The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.4.6):
 
 ```
-https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.4.5/case-study-cards.min.js
+https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.4.6/case-study-cards.min.js
 ```
 
 jsDelivr creates the `.min.js` version automatically. Because the URL is pinned to a version, edits only go live when you publish a new release and update the URL in Code Injection.
@@ -38,7 +38,7 @@ To release a change:
 
 ```bash
 git commit -am "Describe the change"
-git tag 1.4.6
+git tag 1.4.7
 git push origin main --tags
 ```
 
@@ -53,7 +53,7 @@ Go to Settings → Developer Tools → Code Injection → Header and paste:
   case-study-card:not(:defined) { display: block; min-height: 420px; border-radius: 20px; background: #fff; border: 1px solid rgba(24,42,57,.12); }
   case-study-card:not(:defined) > * { visibility: hidden; }
 </style>
-<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.4.5/case-study-cards.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.4.6/case-study-cards.min.js" defer></script>
 ```
 
 The style rule shows a grey placeholder for the split second before the script loads.
@@ -222,4 +222,4 @@ Put one Code Block in Squarespace's global footer (Pages → Footer → Edit). T
 </case-study-footer>
 ```
 
-`tools/build-snippets.py` writes the real one to `private/squarespace-footer.html`, reading your contact details from `private/contact.json` so they stay out of this repo. Colours: `--csc-footer-bg` (default `#00adb8`, the site's accent teal) with navy text `--csc-footer-ink` (`#10212e`, 6:1; white on this teal would only be 2.7:1), project cards on `--csc-footer-card-bg` (`#006a72`, white text 6.3:1), plus `--csc-footer-label` and `--csc-footer-accent`.
+`tools/build-snippets.py` writes the real one to `private/squarespace-footer.html`, reading your contact details from `private/contact.json` so they stay out of this repo. Colours: `--csc-footer-bg` (default `#00adb8`, the site's accent teal) with navy text `--csc-footer-ink` (`#10212e`, 6:1; white on this teal would only be 2.7:1), white project cards with navy text (`--csc-footer-card-bg`, `--csc-footer-card-ink`), and the name and role in `--csc-footer-name` (default white; note white on `#00adb8` is 2.7:1, below WCAG AA), plus `--csc-footer-label` and `--csc-footer-accent`.
