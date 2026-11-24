@@ -22,23 +22,23 @@ Code Blocks with scripts and Code Injection both need a Core plan or higher.
 
 ### 1. Host the script
 
-The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release:
+The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.0.1):
 
 ```
-https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.0.0/case-study-cards.min.js
+https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.0.1/case-study-cards.min.js
 ```
 
-jsDelivr creates the `.min.js` version automatically. Because the URL is pinned to `@1.0.0`, edits only go live when you publish a new release and update the URL in Code Injection.
+jsDelivr creates the `.min.js` version automatically. Because the URL is pinned to a version, edits only go live when you publish a new release and update the URL in Code Injection.
 
 To release a change:
 
 ```bash
 git commit -am "Describe the change"
-git tag 1.0.1
+git tag 1.0.2
 git push origin main --tags
 ```
 
-Then change `@1.0.0` to `@1.0.1` in Code Injection.
+Then change the version in the URL (for example `@1.0.1` to `@1.0.2`) in Code Injection.
 
 ### 2. Add the header code once
 
@@ -49,7 +49,7 @@ Go to Settings → Developer Tools → Code Injection → Header and paste:
   case-study-card:not(:defined) { display: block; min-height: 420px; border-radius: 20px; background: #fff; border: 1px solid rgba(24,42,57,.12); }
   case-study-card:not(:defined) > * { visibility: hidden; }
 </style>
-<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.0.0/case-study-cards.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.0.1/case-study-cards.min.js" defer></script>
 ```
 
 The style rule shows a grey placeholder for the split second before the script loads.

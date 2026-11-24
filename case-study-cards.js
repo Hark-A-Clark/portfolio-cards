@@ -121,6 +121,7 @@
       min-width: 0;
       color: var(--_text);
       font-family: var(--_body-font);
+      text-align: start; /* don't inherit a centered Squarespace section */
       -webkit-font-smoothing: antialiased;
     }
     :host([hidden]) { display: none; }
@@ -664,6 +665,7 @@
     :host {
       ${TOKENS}
       display: block;
+      text-align: start;
       font-family: var(--_body-font);
       color: var(--_text);
     }
