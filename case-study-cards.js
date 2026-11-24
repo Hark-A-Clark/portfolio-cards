@@ -385,9 +385,18 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes pulse { 0% { opacity: .9; transform: scale(.6); } 80%, 100% { opacity: 0; transform: scale(1.6); } }
 
+    /* ---------- mockup: the clip already contains its device mockup and coloured panel ----------
+       The frame keeps its size (so heroes line up across a row) but drops its shadow, and the image/video
+       fill the whole hero instead. Set gradient-from/to to the clip's panel colour so any edges blend in. */
+    :host([mockup]) .frame { position: static; background: none; box-shadow: none; border-radius: 0; overflow: visible; transform: none; }
+    :host([mockup]:hover) .frame, :host([mockup]) .card:has(.title-link:focus-visible) .frame { transform: none; box-shadow: none; }
+    :host([mockup]) .frame img, :host([mockup]) .frame video { object-fit: contain; transition: opacity .3s ease, transform .5s var(--_ease); }
+    :host([mockup]:hover) .frame img, :host([mockup]:hover) .frame video { transform: scale(1.03); }
+
     @media (prefers-reduced-motion: reduce) {
       .frame, .cta { transition: none; }
       :host(:hover) .frame, .card:has(.title-link:focus-visible) .frame { transform: none; }
+      :host([mockup]:hover) .frame img, :host([mockup]:hover) .frame video { transform: none; }
       .shimmer, .status-live .dot::after, .buffering { animation: none; }
     }
   `;
@@ -679,126 +688,47 @@
     }
     :host([data-layout="horizontal"]) .grid { row-gap: var(--csc-row-gap-lg, clamp(28px, 2.5vw, 40px)); }
 
-    /* ---------- "Up next" tile: same anatomy as a card, panel drawn as a work in progress ---------- */
-    .next {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      background: var(--_surface);
-      border: 1px solid var(--_line);
-      border-radius: var(--_card-radius);
-      overflow: hidden;
-      color: var(--_text);
-      text-decoration: none;
-      transition: border-color .35s var(--_ease), box-shadow .35s var(--_ease);
-    }
-    .next[hidden] { display: none; }
-    a.next:hover { border-color: color-mix(in srgb, var(--_text) 22%, transparent); box-shadow: 0 18px 36px -24px rgba(11, 26, 38, .35); }
-    a.next:focus-visible { outline: 3px solid var(--_focus); outline-offset: -3px; }
-    .panel {
-      position: relative;
-      /* same full-bleed box as a card's hero panel */
-      padding: clamp(18px, 7%, 36px) clamp(18px, 7%, 36px) calc(clamp(18px, 7%, 36px) + var(--_offset) / 2);
-      background: var(--_page-bg);
-      overflow: hidden;
-      isolation: isolate;
-    }
-    .next-body { display: flex; flex-direction: column; gap: 12px; padding: 18px var(--_pad) var(--_pad); }
-    .blob {
-      position: absolute;
-      width: 55%; aspect-ratio: 1;
-      border-radius: 50%;
-      filter: blur(34px);
-      opacity: .75;
-      z-index: -1;
-      animation: drift 16s ease-in-out infinite alternate;
-    }
-    .blob.b1 { background: var(--csc-next-1, #4fb0ba); left: -10%; top: -15%; }
-    .blob.b2 { background: var(--csc-next-2, #de8ff2); right: -12%; top: 5%; animation-duration: 19s; animation-delay: -6s; }
-    .blob.b3 { background: var(--csc-next-3, #e3692b); left: 20%; bottom: -30%; animation-duration: 22s; animation-delay: -11s; }
-    .blob.b4 { background: var(--csc-next-4, #f2b935); right: 5%; bottom: -25%; animation-duration: 18s; animation-delay: -3s; }
-
-    /* a wireframe frame "being drafted" */
-    .box { position: relative; aspect-ratio: 16 / 9; }
-    .draft {
-      position: absolute;
-      inset: 6% 8%;
-      display: grid; align-content: start; gap: 10px;
-      padding: 12px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, .55);
-      border: 1px solid rgba(255, 255, 255, .8);
-      box-shadow: 0 12px 28px -14px rgba(11, 26, 38, .45);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-    }
-    .draft .img { aspect-ratio: 16 / 6; border-radius: 6px; background-color: rgba(24, 42, 57, .1); }
-    .draft .ln { height: 8px; border-radius: 4px; background-color: rgba(24, 42, 57, .14); }
-    .draft .ln.w1 { width: 45%; }
-    .draft .ln.w2 { width: 80%; }
-    .draft .img, .draft .ln {
-      background-image: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.85) 50%, transparent 100%);
-      background-size: 250% 100%;
-      background-repeat: no-repeat;
-      animation: sweep 2.4s ease-in-out infinite;
-    }
-    .cursor {
-      position: absolute; width: 18px; height: 18px;
-      left: 64%; top: 62%;
-      animation: wander 7s ease-in-out infinite;
-      filter: drop-shadow(0 2px 3px rgba(0,0,0,.3));
-    }
-
-    .eyebrow {
-      display: inline-flex; align-items: center; gap: 8px;
-      color: var(--_accent);
-      font: 700 12px/1 var(--_body-font);
-      letter-spacing: .1em; text-transform: uppercase;
-    }
-    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: blink 1.6s ease-in-out infinite; }
-    .heading {
+    /* ---------- credit callout: a small code snippet, deliberately lighter than a card ---------- */
+    .credit {
+      align-self: center;
+      justify-self: start;
+      width: 100%;
+      max-width: 480px;
+      display: grid;
+      gap: 14px;
       margin: 0;
-      font: 400 1.6rem/1.15 var(--_heading-font);
-      letter-spacing: -0.02em;
-      min-height: 1.15em;
     }
-    .caret { display: inline-block; width: 2px; height: 1em; margin-left: 3px; background: var(--_accent); vertical-align: -0.1em; animation: blink 1s step-end infinite; }
-    .text { margin: 0; font-size: 1.0625rem; line-height: 1.55; max-width: 36ch; }
-    .cta {
-      display: inline-flex; align-items: center;
-      align-self: flex-start;
-      min-height: 44px;
-      margin-top: 4px;
-      padding: 0 22px;
-      border: 2px solid var(--_accent);
-      border-radius: var(--_pill);
-      color: var(--_accent);
-      font: 700 15px/1 var(--_body-font);
-      transition: background-color .25s ease, color .25s ease;
+    .credit[hidden] { display: none; }
+    :host([data-columns="1"]) .credit { justify-self: center; }
+    .code {
+      margin: 0;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: var(--csc-code-bg, #182a39);
+      color: rgba(255, 255, 255, .62);
+      font: 400 13.5px/1.7 var(--csc-mono, ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace);
+      overflow-x: auto;
+      white-space: pre;
+      box-shadow: 0 16px 32px -24px rgba(11, 26, 38, .6);
     }
-    a.next:hover .cta, a.next:focus-visible .cta { background: var(--_accent); color: var(--_accent-contrast); }
+    .code .c { color: rgba(255, 255, 255, .45); font-style: italic; }
+    .code .t { color: #7fd6dd; }
+    .code .a { color: #f2c75c; }
+    .code .s { color: #e9a6f7; }
+    .code .caret { display: inline-block; width: .55em; height: 1.1em; margin-left: 2px; vertical-align: -0.2em; background: #7fd6dd; animation: blink 1.1s step-end infinite; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .caption { margin: 0; padding: 0 4px; color: var(--_muted); font-size: .9375rem; line-height: 1.55; }
+    .caption a { color: var(--_accent); font-weight: 600; text-underline-offset: 3px; white-space: nowrap; }
+    .caption a:hover { text-decoration-thickness: 2px; }
+    .caption a:focus-visible { outline: 3px solid var(--_focus); outline-offset: 2px; border-radius: 2px; }
 
-    @keyframes drift {
-      0% { transform: translate(0, 0) scale(1); }
-      50% { transform: translate(15%, 10%) scale(1.15); }
-      100% { transform: translate(-10%, 15%) scale(.95); }
-    }
-    @keyframes sweep { 0% { background-position: 150% 0; } 100% { background-position: -150% 0; } }
     @keyframes blink { 50% { opacity: 0; } }
-    @keyframes wander {
-      0%, 100% { transform: translate(0, 0); }
-      30% { transform: translate(-80px, -26px); }
-      60% { transform: translate(-28px, -60px); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .blob, .draft .img, .draft .ln, .cursor, .eyebrow .dot, .caret { animation: none; }
-      .panel, .cta { transition: none; }
-    }
+    @media (prefers-reduced-motion: reduce) { .code .caret { animation: none; } }
   `;
 
   class CaseStudyGrid extends HTMLElement {
     static get observedAttributes() {
-      return ['horizontal-from', 'two-up-from', 'three-up-from', 'next-title', 'next-text', 'next-href', 'next-label', 'next-eyebrow', 'no-next', 'play-mode', 'alternate'];
+      return ['horizontal-from', 'two-up-from', 'three-up-from', 'credit-designed-by', 'credit-built-with', 'credit-text', 'credit-href', 'credit-label', 'no-credit', 'play-mode', 'alternate'];
     }
 
     constructor() {
@@ -808,10 +738,10 @@
         <style>${GRID_CSS}</style>
         <div class="grid" part="grid">
           <slot></slot>
-          <div class="next" part="next" hidden></div>
+          <figure class="credit" part="credit" hidden></figure>
         </div>`;
       this._grid = this.shadowRoot.querySelector('.grid');
-      this._next = this.shadowRoot.querySelector('.next');
+      this._credit = this.shadowRoot.querySelector('.credit');
       this._slot = this.shadowRoot.querySelector('slot');
       this._slot.addEventListener('slotchange', () => this._layout());
       this._ro = new ResizeObserver(() => this._layout());
@@ -819,15 +749,15 @@
 
     connectedCallback() {
       this._ro.observe(this);
-      this._renderNext();
+      this._renderCredit();
       this._layout();
     }
-    disconnectedCallback() { this._ro.disconnect(); this._typeIO?.disconnect(); }
+    disconnectedCallback() { this._ro.disconnect(); }
 
     attributeChangedCallback(name) {
       if (!this.isConnected) return;
       if (name === 'play-mode') { this._cards().forEach((c) => c._applyMode?.()); return; }
-      if (name.startsWith('next') || name === 'no-next') this._renderNext();
+      if (name.startsWith('credit') || name === 'no-credit') this._renderCredit();
       this._layout();
     }
 
@@ -858,58 +788,21 @@
       const cards = this._cards();
       cards.forEach((c, i) => c._setGridLayout?.(layout, alternate && i % 2 === 1));
 
+      // the credit fills the gap in the last row; with no gap it gets a row of its own
       const empty = cols > 1 ? (cols - (cards.length % cols)) % cols : 0;
-      const show = empty > 0 && !this.hasAttribute('no-next');
-      this._next.hidden = !show;
-      if (show) this._next.style.gridColumn = `span ${empty}`;
+      this._credit.hidden = this.hasAttribute('no-credit');
+      this._credit.style.gridColumn = empty > 0 ? `span ${empty}` : '1 / -1';
     }
 
-    _renderNext() {
+    _renderCredit() {
       const a = (n, d) => (this.getAttribute(n) ?? d);
-      const href = this.getAttribute('next-href');
-      const old = this._next;
-      const el = document.createElement(href ? 'a' : 'div');
-      el.className = 'next';
-      el.setAttribute('part', 'next');
-      el.hidden = old.hidden;
-      el.style.gridColumn = old.style.gridColumn;
-      if (href) el.href = href;
-      const title = a('next-title', 'New case study in the works');
-      el.innerHTML = `
-        <div class="panel" aria-hidden="true">
-          <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span>
-          <div class="box">
-            <div class="draft"><div class="img"></div><div class="ln w1"></div><div class="ln w2"></div></div>
-            <svg class="cursor" viewBox="0 0 18 18"><path d="M2 1.5 15 8.2l-5.6 1.6L7 15.5z" fill="#182a39" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/></svg>
-          </div>
-        </div>
-        <div class="next-body">
-          <span class="eyebrow"><span class="dot" aria-hidden="true"></span>${esc(a('next-eyebrow', 'Up next'))}</span>
-          <p class="heading" aria-label="${esc(title)}"><span class="typed" aria-hidden="true"></span><span class="caret" aria-hidden="true"></span></p>
-          <p class="text">${esc(a('next-text', 'Drafting the next story now. Want an early look?'))}</p>
-          ${href ? `<span class="cta">${esc(a('next-label', 'Get in touch'))}</span>` : ''}
-        </div>`;
-      old.replaceWith(el);
-      this._next = el;
-      this._typeOnView(el.querySelector('.typed'), title);
-    }
-
-    /* Types the heading once when the tile scrolls into view. */
-    _typeOnView(target, text) {
-      this._typeIO?.disconnect();
-      if (mqReduce.matches) { target.textContent = text; return; }
-      target.textContent = '';
-      this._typeIO = new IntersectionObserver((entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        this._typeIO.disconnect();
-        let i = 0;
-        const step = () => {
-          target.textContent = text.slice(0, ++i);
-          if (i < text.length) setTimeout(step, 38 + Math.random() * 50);
-        };
-        setTimeout(step, 350);
-      }, { threshold: 0.5 });
-      this._typeIO.observe(this._next);
+      const by = a('credit-designed-by', ''), withWho = a('credit-built-with', 'Claude');
+      const href = this.getAttribute('credit-href');
+      const attr = (k, v) => v ? `\n  <span class="a">${k}</span>=<span class="s">"${esc(v)}"</span>` : '';
+      this._credit.innerHTML = `
+        <pre class="code" aria-hidden="true"><span class="c">&lt;!-- the cards above --&gt;</span>
+<span class="t">&lt;case-study-card</span>${attr('designed-by', by)}${attr('built-with', withWho)}<span class="t">&gt;</span><span class="caret"></span></pre>
+        <figcaption class="caption">${esc(a('credit-text', `Custom web components${by ? `, designed by ${by}` : ''} and built with ${withWho}.`))}${href ? ` <a href="${esc(href)}" target="_blank" rel="noopener">${esc(a('credit-label', 'See the code'))}<span class="sr"> (opens in a new tab)</span></a>` : ''}</figcaption>`;
     }
   }
 

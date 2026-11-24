@@ -138,11 +138,11 @@
     <div class="stage-clip" id="clip">
       <div class="stage" id="stage">
         <h2 class="section">Case Studies</h2>
-        <case-study-grid id="grid" next-href="#contact" next-label="Get in touch">
-          <case-study-card href="/app" status="live" protected year="2026" platforms="Web"
+        <case-study-grid id="grid" credit-designed-by="Adriana Clark" credit-href="https://github.com/Hark-A-Clark/portfolio-cards">
+          <case-study-card href="/app" status="live" mockup protected year="2026" platforms="Web"
             company="Planet A" product="Field Guide" feature="Climate-zone search"
-            video="../media/planet-a.mp4" poster="../media/planet-a.jpg"
-            gradient-from="#58bac4" gradient-to="#43a3ad" gradient-angle="160">
+            video="../media/planet-a-mockup.mp4" poster="../media/planet-a-mockup.jpg"
+            gradient-from="#00b0bc" gradient-to="#00b0bc" gradient-angle="160">
             <h3 slot="title">Climate Solutions App</h3>
             <p slot="description">A climate solutions field guide that collects and scales the global effort to combat climate change.</p>
           </case-study-card>
@@ -160,10 +160,10 @@
             <h3 slot="title">Design Systems</h3>
             <p slot="description">A token-driven design system for Planet A, built with AI in the loop: themes, right-to-left languages and documented components.</p>
           </case-study-card>
-          <case-study-card href="/project-homesafe" status="in-progress" year="2026" platforms="iOS, Android"
+          <case-study-card href="/project-homesafe" status="in-progress" mockup year="2026" platforms="iOS, Android"
             company="Vancouver Fire Corps" product="Project HomeSafe" feature="Home-safety canvassing"
-            video="../media/homesafe.mp4" poster="../media/homesafe.jpg"
-            gradient-from="#f6c24a" gradient-to="#ebab28" gradient-angle="160">
+            video="../media/homesafe-mockup.mp4" poster="../media/homesafe-mockup.jpg"
+            gradient-from="#f5b302" gradient-to="#f5b302" gradient-angle="160">
             <h3 slot="title">Project HomeSafe</h3>
             <p slot="description">Digital Transformation automating manual paperwork heavy process.</p>
           </case-study-card>
@@ -253,7 +253,7 @@
   case-study-card:not(:defined) > * { visibility: hidden; }
 </style>
 <script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.0.1/case-study-cards.min.js" defer><\/script>`;
-  const block = `<case-study-grid next-href="/contact" next-label="Get in touch">
+  const block = `<case-study-grid credit-designed-by="Adriana Clark" credit-href="https://github.com/Hark-A-Clark/portfolio-cards">
   <case-study-card href="/climate-solutions-app" status="live" year="2026" platforms="Web"
     company="Planet A" product="Field Guide" feature="Climate-zone search"
     video="https://YOUR-VIDEO-HOST/climate.mp4" poster="https://YOUR-VIDEO-HOST/climate.jpg"

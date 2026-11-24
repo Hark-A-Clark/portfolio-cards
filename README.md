@@ -3,7 +3,7 @@
 Two web components for showing case studies on a Squarespace site:
 
 - `<case-study-card>`: one card with an animated demo, status, company › product › feature, a password and NDA label, year and platforms.
-- `<case-study-grid>`: lays the cards out and fills any gap in the last row with an "Up next" tile.
+- `<case-study-grid>`: lays the cards out and adds a small code-snippet credit ("designed by … built with Claude") in the gap after the last card.
 
 Each card keeps its styles in Shadow DOM, so the cards and Squarespace can't restyle each other. Titles and descriptions are ordinary HTML in the page, so search engines can read them.
 
@@ -24,10 +24,10 @@ Code Blocks with scripts and Code Injection both need a Core plan or higher.
 
 ### 1. Host the script
 
-The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.1.0):
+The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.2.0):
 
 ```
-https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.1.0/case-study-cards.min.js
+https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.2.0/case-study-cards.min.js
 ```
 
 jsDelivr creates the `.min.js` version automatically. Because the URL is pinned to a version, edits only go live when you publish a new release and update the URL in Code Injection.
@@ -36,11 +36,11 @@ To release a change:
 
 ```bash
 git commit -am "Describe the change"
-git tag 1.1.1
+git tag 1.2.1
 git push origin main --tags
 ```
 
-Then change the version in the URL (for example `@1.1.0` to `@1.1.1`) in Code Injection.
+Then change the version in the URL (for example `@1.2.0` to `@1.2.1`) in Code Injection.
 
 ### 2. Add the header code once
 
@@ -51,7 +51,7 @@ Go to Settings → Developer Tools → Code Injection → Header and paste:
   case-study-card:not(:defined) { display: block; min-height: 420px; border-radius: 20px; background: #fff; border: 1px solid rgba(24,42,57,.12); }
   case-study-card:not(:defined) > * { visibility: hidden; }
 </style>
-<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.1.0/case-study-cards.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.2.0/case-study-cards.min.js" defer></script>
 ```
 
 The style rule shows a grey placeholder for the split second before the script loads.
@@ -59,7 +59,7 @@ The style rule shows a grey placeholder for the split second before the script l
 ### 3. Add one Code Block with the grid
 
 ```html
-<case-study-grid next-href="/contact" next-label="Get in touch">
+<case-study-grid credit-designed-by="Adriana Clark" credit-href="https://github.com/Hark-A-Clark/portfolio-cards">
   <case-study-card
     href="/work/bill-split"
     status="in-progress"
@@ -96,6 +96,7 @@ Scripts don't run inside Squarespace's editor, so cards look plain there. Check 
 | `gradient` | `radial-gradient(…)` | Any CSS background. Use instead of the from/to attributes for more complex gradients. |
 | `shadow-color` | `#2f7f87` | Color of the offset shadow. Defaults to a darker shade of `gradient-to`. |
 | `cta` | `Read the story` | Button text. Defaults to "View case study"; `cta=""` hides it. |
+| `mockup` | (no value) | The clip already includes its device mockup and coloured panel: it fills the whole hero, without the inner frame and shadow. Set `gradient-from`/`gradient-to` to the panel colour. |
 | `media-ratio` | `16/10` | Shape of the demo frame. Default 16/9 (1280×720 clips). |
 | `play-mode` | `auto`, `hover`, `scroll`, `none` | Usually set on the grid instead. |
 
@@ -112,9 +113,13 @@ Put the title in an element with `slot="title"`. Use whatever heading level fits
 | `three-up-from` | `900` | Width where it switches to 3 across. |
 | `horizontal-from` | `1320` | Width where cards become 1 per row with the image beside the text. Lower it if your Squarespace content area never gets this wide. |
 | `alternate` | on | In the wide layout, rows alternate image-left and image-right. Set `alternate="false"` to keep images on the left. |
-| `next-href` | none | Makes the "Up next" tile a link, for example `/contact`. |
-| `next-eyebrow`, `next-title`, `next-text`, `next-label` | "Up next", "New case study in the works", … | Text in the "Up next" tile. |
-| `no-next` | (no value) | Leaves the gap empty instead. |
+| `credit-designed-by` | none | Name shown in the credit snippet and caption. |
+| `credit-built-with` | `Claude` | Second line of the snippet. |
+| `credit-text` | "Custom web components, designed by … and built with …" | Replaces the caption. |
+| `credit-href`, `credit-label` | none, "See the code" | Adds a link after the caption (opens in a new tab). |
+| `no-credit` | (no value) | Hides the credit. |
+
+The credit sits in the empty space of the last row. When there is no gap (one card per row), it gets its own row under the cards.
 
 These are widths of the grid itself, not the browser window, so the grid lays out correctly in any Squarespace section.
 
@@ -145,10 +150,7 @@ case-study-card {
 }
 case-study-grid {
   --csc-gap: 40px;
-  --csc-next-1: #4fb0ba;        /* the four colors in the "Up next" tile */
-  --csc-next-2: #de8ff2;
-  --csc-next-3: #e3692b;
-  --csc-next-4: #f2b935;
+  --csc-code-bg: #182a39;      /* background of the credit snippet */
 }
 ```
 
@@ -168,7 +170,7 @@ Your current homepage images have the colored panel and shadow baked in. For the
 ## Making demo clips
 
 1. Record with ⌘⇧5 (desktop) or iPhone screen recording, and drop the `.mov` into `raw/`.
-2. Add or edit its entry in `tools/clips.json`: the time `segments` to keep (with optional `speed`), `mode` (`desktop` or `phone`), `phoneWidth` to zoom phone recordings, and `blur` boxes for anything confidential.
+2. Add or edit its entry in `tools/clips.json`: the time `segments` to keep (with optional `speed`), `mode` (`desktop`, `phone`, or `mockup` to play it inside a phone screen in a static image from `tools/mockups/`), `phoneWidth` to zoom phone recordings, and `blur` boxes for anything confidential.
 3. Run `swift tools/make-clip.swift tools/clips.json <name>`. It writes `media/<name>.mp4` and a poster from the first frame.
 4. The design-system clip is drawn by `swift tools/make-ds-clip.swift` from the Storybook captures in `tools/ds-frames/`.
 5. Card text and links live in `tools/build-snippets.py`. Run `python3 tools/build-snippets.py <version>`, commit, tag that version, push, then paste the new `squarespace-code-block.html` and update the version in Code Injection.

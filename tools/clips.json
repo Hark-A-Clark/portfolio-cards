@@ -84,5 +84,82 @@
         ]
       }
     ]
+  },
+  {
+    "name": "planet-a-mockup",
+    "source": "raw/Planet-A-explore-map.mov",
+    "mode": "mockup",
+    "segments": [
+      {
+        "start": 13,
+        "end": 23.5,
+        "speed": 1.25
+      }
+    ],
+    "mockup": {
+      "image": "tools/mockups/planet-a.png",
+      "panel": [
+        50,
+        40,
+        1130,
+        730
+      ],
+      "color": "#00b9c4",
+      "screen": [
+        847,
+        126,
+        294,
+        596
+      ],
+      "radius": 30,
+      "crop": [
+        40,
+        18,
+        616,
+        1295
+      ],
+      "border": "#515151"
+    }
+  },
+  {
+    "name": "homesafe-mockup",
+    "source": "raw/VFC Project Homesafe.mov",
+    "mode": "mockup",
+    "segments": [
+      {
+        "start": 20,
+        "end": 32,
+        "speed": 2
+      },
+      {
+        "start": 92,
+        "end": 106,
+        "speed": 2
+      }
+    ],
+    "mockup": {
+      "image": "tools/mockups/homesafe.png",
+      "panel": [
+        50,
+        40,
+        1120,
+        730
+      ],
+      "color": "#f8bb00",
+      "screen": [
+        800,
+        113,
+        282,
+        578
+      ],
+      "radius": 16,
+      "crop": [
+        8,
+        0,
+        709,
+        1366
+      ],
+      "border": "#37414b"
+    }
   }
 ]

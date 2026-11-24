@@ -1,12 +1,23 @@
 // Turns a raw screen recording into a card demo clip + poster, using macOS's built-in AVFoundation.
 // usage: swift tools/make-clip.swift clips.json [name]
-// clips.json: [{ "name", "source", "mode": "desktop"|"phone",
+// clips.json: [{ "name", "source", "mode": "desktop"|"phone"|"mockup",
 //   "segments": [{"start","end","speed"}], "blur": [{"start","end","rect":[x,y,w,h]}] (source px, top-left origin, source seconds) }]
 import AVFoundation; import CoreImage; import AppKit
 
 struct Seg: Decodable { let start: Double; let end: Double; let speed: Double? }
 struct Blur: Decodable { let start: Double; let end: Double; let rect: [Double] }
-struct Clip: Decodable { let name: String; let source: String; let mode: String; let segments: [Seg]; let blur: [Blur]?; let phoneWidth: Double?; let offsetY: Double? }
+// mockup mode: plays the recording inside the phone screen of a static mockup image.
+//   image: mockup png; panel: [x,y,w,h] an area inside its coloured panel (clear of rounded corners and the baked-in shadow);
+//   color: panel hex, for the card's own background;
+//   screen: [x,y,w,h] where the recording goes (mockup px); radius: screen corner radius; crop: [x,y,w,h] recording px to use;
+//   border: optional hex for a 1px outline redrawn around the screen. All rects use top-left origin.
+struct Mockup: Decodable { let image: String; let panel: [Double]; let color: String; let screen: [Double]; let radius: Double; let crop: [Double]; let border: String? }
+struct Clip: Decodable { let name: String; let source: String; let mode: String; let segments: [Seg]; let blur: [Blur]?; let phoneWidth: Double?; let offsetY: Double?; let mockup: Mockup? }
+
+func ciColor(_ hex: String) -> CIColor {
+  let v = Int(hex.dropFirst(), radix: 16)!
+  return CIColor(red: CGFloat((v >> 16) & 255) / 255, green: CGFloat((v >> 8) & 255) / 255, blue: CGFloat(v & 255) / 255)
+}
 
 let W = 1280.0, H = 720.0, FPS: Int32 = 30, BITRATE = 2_000_000
 let bg = CIImage(color: CIColor(red: 0.957, green: 0.965, blue: 0.973)) // #f4f6f8 behind phone clips
@@ -33,6 +44,7 @@ func run(_ c: Clip) async throws {
   }
   func srcTime(_ t: Double) -> Double { for m in map where t < m.outEnd { return m.srcStart + (t - m.outStart) * m.speed }; return map.last!.srcStart }
   let srcH = Double(natural.height), srcW = Double(natural.width)
+  let mockupImage = c.mockup.map { CIImage(contentsOf: base.appendingPathComponent($0.image))! }
 
   let vc = AVMutableVideoComposition(asset: comp) { req in
     var img = req.sourceImage
@@ -43,7 +55,32 @@ func run(_ c: Clip) async throws {
       img = blurred.composited(over: img)
     }
     var out: CIImage
-    if c.mode == "phone" {
+    if c.mode == "mockup", let m = c.mockup {
+      // Mockup is scaled so its panel fills the frame height and centred; the panel colour fills the sides.
+      let mock = mockupImage!, mh = mock.extent.height
+      let s = H / m.panel[3]
+      let ox = (W - m.panel[2] * s) / 2 - m.panel[0] * s
+      let oy = -(mh - m.panel[1] - m.panel[3]) * s // CI origin is bottom-left
+      let place = CGAffineTransform(scaleX: s, y: s).concatenating(CGAffineTransform(translationX: ox, y: oy))
+      let panelRect = CGRect(x: m.panel[0], y: mh - m.panel[1] - m.panel[3], width: m.panel[2], height: m.panel[3])
+      // panel is cropped inside the mockup's rounded corners; its edge pixels are stretched outward to fill the frame
+      var frame = mock.cropped(to: panelRect).clampedToExtent().transformed(by: place)
+      // screen rect in output coords
+      let sr = CGRect(x: m.screen[0], y: mh - m.screen[1] - m.screen[3], width: m.screen[2], height: m.screen[3]).applying(place)
+      // recording crop (top-left px → CI coords), scaled to cover the screen, pinned to the top
+      let cr = CGRect(x: m.crop[0], y: srcH - m.crop[1] - m.crop[3], width: m.crop[2], height: m.crop[3])
+      let k = max(sr.width / cr.width, sr.height / cr.height)
+      let rec = img.cropped(to: cr).transformed(by: CGAffineTransform(translationX: -cr.minX, y: -cr.minY))
+        .transformed(by: CGAffineTransform(scaleX: k, y: k))
+        .transformed(by: CGAffineTransform(translationX: sr.midX - cr.width * k / 2, y: sr.maxY - cr.height * k))
+      let rr = m.radius * s
+      let mask = CIFilter(name: "CIRoundedRectangleGenerator", parameters: ["inputExtent": CIVector(cgRect: sr), "inputRadius": rr, "inputColor": CIColor.white])!.outputImage!
+      frame = rec.applyingFilter("CIBlendWithMask", parameters: [kCIInputBackgroundImageKey: frame, kCIInputMaskImageKey: mask])
+      if let b = m.border, let stroke = CIFilter(name: "CIRoundedRectangleStrokeGenerator", parameters: ["inputExtent": CIVector(cgRect: sr), "inputRadius": rr, "inputWidth": 1.2, "inputColor": ciColor(b)])?.outputImage {
+        frame = stroke.composited(over: frame)
+      }
+      out = frame
+    } else if c.mode == "phone" {
       // phoneWidth (share of frame width) zooms in: the phone is pinned near the top and runs off the bottom edge.
       // offsetY (source px) shifts the phone up to show a lower part of the screen.
       let scale = c.phoneWidth.map { $0 * W / srcW } ?? (H - 40) / srcH
