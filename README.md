@@ -94,7 +94,7 @@ Scripts don't run inside Squarespace's editor, so cards look plain there. Check 
 | `gradient` | `radial-gradient(…)` | Any CSS background. Use instead of the from/to attributes for more complex gradients. |
 | `shadow-color` | `#2f7f87` | Color of the offset shadow. Defaults to a darker shade of `gradient-to`. |
 | `cta` | `Read the story` | Button text. Defaults to "View case study"; `cta=""` hides it. |
-| `media-ratio` | `16/10` | Shape of the demo frame. Default 16/10. |
+| `media-ratio` | `16/10` | Shape of the demo frame. Default 16/9 (1280×720 clips). |
 | `play-mode` | `auto`, `hover`, `scroll`, `none` | Usually set on the grid instead. |
 
 A card shows **one** access tag. With both `protected` and `confidential`, it shows a lock icon with the reason ("🔒 NDA protected"), and screen readers hear "Password protected, NDA protected". With only `protected` it reads "Password protected"; with only `confidential` it shows a shield icon with the reason.

@@ -1,0 +1,88 @@
+[
+  {
+    "name": "planet-a",
+    "source": "raw/Planet-A-explore-map.mov",
+    "mode": "phone",
+    "segments": [
+      {
+        "start": 13,
+        "end": 23.5,
+        "speed": 1.25
+      }
+    ],
+    "phoneWidth": 0.4
+  },
+  {
+    "name": "sunnova",
+    "source": "raw/Sunnova-Daas.mov",
+    "mode": "desktop",
+    "segments": [
+      {
+        "start": 0.2,
+        "end": 17.6,
+        "speed": 2
+      }
+    ]
+  },
+  {
+    "name": "homesafe",
+    "source": "raw/VFC Project Homesafe.mov",
+    "mode": "phone",
+    "segments": [
+      {
+        "start": 20,
+        "end": 32,
+        "speed": 2
+      },
+      {
+        "start": 92,
+        "end": 106,
+        "speed": 2
+      }
+    ],
+    "phoneWidth": 0.4
+  },
+  {
+    "name": "information-architecture",
+    "source": "raw/Hearsay-IA.mov",
+    "mode": "desktop",
+    "segments": [
+      {
+        "start": 0,
+        "end": 9
+      }
+    ],
+    "blur": [
+      {
+        "start": 0,
+        "end": 3.2,
+        "rect": [
+          0,
+          0,
+          455,
+          135
+        ]
+      },
+      {
+        "start": 5.35,
+        "end": 7.6,
+        "rect": [
+          0,
+          0,
+          455,
+          135
+        ]
+      },
+      {
+        "start": 7.6,
+        "end": 99,
+        "rect": [
+          0,
+          0,
+          160,
+          135
+        ]
+      }
+    ]
+  }
+]

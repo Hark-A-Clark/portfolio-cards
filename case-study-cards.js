@@ -116,7 +116,7 @@
       ${TOKENS}
       --_gradient: linear-gradient(135deg, #4fb0ba, #3fa2ac);
       --_panel-shadow: rgba(24, 42, 57, .22);
-      --_ratio: 16 / 10;
+      --_ratio: 16 / 9;
       display: block;
       min-width: 0;
       color: var(--_text);
@@ -719,7 +719,7 @@
     .blob.b4 { background: var(--csc-next-4, #f2b935); right: 5%; bottom: -25%; animation-duration: 18s; animation-delay: -3s; }
 
     /* a wireframe frame "being drafted" */
-    .box { position: relative; aspect-ratio: 16 / 10; }
+    .box { position: relative; aspect-ratio: 16 / 9; }
     .draft {
       position: absolute;
       inset: 6% 8%;
