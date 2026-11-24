@@ -1,8 +1,9 @@
 # Case Study Cards
 
-Two web components for showing case studies on a Squarespace site:
+Three web components for showing case studies on a Squarespace site:
 
 - `<case-study-card>`: one card with an animated demo, status, company › product › feature, a password and NDA label, year and platforms.
+- `<case-study-header>`: the hero at the top of a project page, with the demo playing behind the details.
 - `<case-study-grid>`: lays the cards out and adds a small code-snippet credit ("designed by … built with Claude") in the gap after the last card.
 
 Each card keeps its styles in Shadow DOM, so the cards and Squarespace can't restyle each other. Titles and descriptions are ordinary HTML in the page, so search engines can read them.
@@ -24,10 +25,10 @@ Code Blocks with scripts and Code Injection both need a Core plan or higher.
 
 ### 1. Host the script
 
-The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.2.1):
+The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.3.0):
 
 ```
-https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.2.1/case-study-cards.min.js
+https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.3.0/case-study-cards.min.js
 ```
 
 jsDelivr creates the `.min.js` version automatically. Because the URL is pinned to a version, edits only go live when you publish a new release and update the URL in Code Injection.
@@ -36,11 +37,11 @@ To release a change:
 
 ```bash
 git commit -am "Describe the change"
-git tag 1.2.2
+git tag 1.3.1
 git push origin main --tags
 ```
 
-Then change the version in the URL (for example `@1.2.1` to `@1.2.2`) in Code Injection.
+Then change the version in the URL (for example `@1.3.0` to `@1.2.2`) in Code Injection.
 
 ### 2. Add the header code once
 
@@ -51,7 +52,7 @@ Go to Settings → Developer Tools → Code Injection → Header and paste:
   case-study-card:not(:defined) { display: block; min-height: 420px; border-radius: 20px; background: #fff; border: 1px solid rgba(24,42,57,.12); }
   case-study-card:not(:defined) > * { visibility: hidden; }
 </style>
-<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.2.1/case-study-cards.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.3.0/case-study-cards.min.js" defer></script>
 ```
 
 The style rule shows a grey placeholder for the split second before the script loads.
@@ -174,3 +175,32 @@ Your current homepage images have the colored panel and shadow baked in. For the
 3. Run `swift tools/make-clip.swift tools/clips.json <name>`. It writes `media/<name>.mp4` and a poster from the first frame.
 4. The design-system clip is drawn by `swift tools/make-ds-clip.swift` from the Storybook captures in `tools/ds-frames/`.
 5. Card text and links live in `tools/build-snippets.py`. Run `python3 tools/build-snippets.py <version>`, commit, tag that version, push, then paste the new `squarespace-code-block.html` and update the version in Code Injection.
+
+## Project page header
+
+Put one Code Block at the top of a project page:
+
+```html
+<case-study-header status="live" role="Lead Product Designer" duration="Jan – Jun 2026" platforms="iOS, Android"
+  tools="Figma, Claude Code, Maze"
+  features="Onboarding; Offline sync; Shared lists; Notifications"
+  company="Example Co." confidential="NDA protected" industry="Productivity" feature="Shared lists"
+  video="…/demo.mp4" poster="…/demo.jpg" media-color="#eef1f4">
+  <h1 slot="title">Sample Project</h1>
+  <p slot="blurb">One sentence about the company.</p>
+</case-study-header>
+```
+
+| Attribute | Notes |
+|---|---|
+| `status` | `live` or `in-progress`. |
+| `role`, `duration`, `platforms` | Shown as labelled facts. |
+| `tools` | Comma-separated; shown as chips. |
+| `features` | Completed features, separated with `;`. Shows `max-features` (default 4) and a "+N more" button for the rest. |
+| `company`, `protected`, `confidential` | Company name with the same single access tag the cards use. The blurb goes in `slot="blurb"`. |
+| `industry`, `feature` | Two small tags at the bottom. |
+| `video`, `poster`, `media-color` | The demo, pinned right and faded behind the text. `media-color` fills the frame while it loads; use the clip's panel colour. |
+
+On blocks narrower than 760px the text comes first and the demo sits below it at full width. The demo plays while the header is on screen and never loads for visitors who turn off animation. Use the `h1` for the project name and remove Squarespace's own page title text so it isn't repeated.
+
+Content for real (and password-protected) project pages is kept in the git-ignored `private/` folder, so it never lands in this public repo.

@@ -1,5 +1,5 @@
 /*!
- * Case Study Cards — <case-study-card> + <case-study-grid>
+ * Case Study Cards — <case-study-card> + <case-study-grid> + <case-study-header>
  * Self-contained web components for embedding in Squarespace (or any site).
  * Styles live in Shadow DOM, so nothing here can restyle the host site and
  * the host site's CSS can't break the cards.
@@ -807,6 +807,226 @@
     }
   }
 
+  /* ------------------------------------------------------------------ */
+  /* <case-study-header>: the hero at the top of a project page         */
+  /* ------------------------------------------------------------------ */
+
+  const HEADER_CSS = /* css */ `
+    :host {
+      ${TOKENS}
+      --_media-bg: #e7eef0;
+      display: block;
+      container-type: inline-size;
+      color: var(--_text);
+      font-family: var(--_body-font);
+      text-align: start;
+      -webkit-font-smoothing: antialiased;
+    }
+    * { box-sizing: border-box; }
+    .hero {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-height: var(--csc-header-height, clamp(420px, 40cqi, 520px));
+      background: var(--_surface);
+      border: 1px solid var(--_line);
+      border-radius: var(--_card-radius);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    /* demo: pinned right at full height, 16:9, faded into the surface behind the text */
+    .media {
+      position: absolute; top: 0; right: 0; bottom: 0;
+      aspect-ratio: 16 / 9;
+      background: var(--_media-bg);
+      z-index: -2;
+    }
+    .media img, .media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .media video { opacity: 0; transition: opacity .4s ease; }
+    :host([data-playing]) .media video { opacity: 1; }
+    .fade {
+      position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background: linear-gradient(90deg, var(--_surface) 0%, var(--_surface) 44%, color-mix(in srgb, var(--_surface) 70%, transparent) 56%, transparent 72%);
+    }
+
+    .content {
+      width: min(100%, 600px, 54%);
+      padding: clamp(28px, 4cqi, 52px);
+      display: flex; flex-direction: column; gap: 18px;
+    }
+
+    /* 1 · project name */
+    ::slotted([slot="title"]) {
+      margin: 0 !important;
+      font-family: var(--_heading-font) !important;
+      font-weight: 400 !important;
+      font-size: var(--csc-header-title-size, clamp(2.1rem, 4.4cqi, 3.3rem)) !important;
+      line-height: 1.05 !important;
+      letter-spacing: -0.02em !important;
+      color: var(--_text) !important;
+      text-wrap: balance;
+    }
+
+    /* 2 · project details */
+    .details { display: flex; flex-direction: column; gap: 12px; }
+    .status { margin: 0 0 -2px; display: flex; }
+    .facts { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, .8fr); gap: 10px 22px; margin: 0; }
+    @container (max-width: 520px) { .facts { grid-template-columns: 1fr 1fr; } .facts > div:first-child { grid-column: 1 / -1; } }
+    .facts > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    dt, .label { color: var(--_muted); font: 700 11px/1.2 var(--_body-font); letter-spacing: .09em; text-transform: uppercase; }
+    dd { margin: 0; font: 600 .98rem/1.3 var(--_body-font); }
+    .group { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+    .group .label { flex: none; min-width: 5.6em; }
+    ul { list-style: none; margin: 0; padding: 0; }
+    .tools { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 26px; padding: 0 11px;
+      border-radius: var(--_pill);
+      background: var(--_chip-bg); color: var(--_chip);
+      font: 500 13px/1 var(--_body-font); white-space: nowrap;
+    }
+    .chip svg { width: 12px; height: 12px; flex: none; }
+    .chip.status-live { background: var(--_live-bg); color: var(--_live); font-weight: 600; }
+    .chip.status-in-progress { background: var(--_progress-bg); color: var(--_progress); font-weight: 600; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; position: relative; }
+    .status-live .dot::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 1.5px solid currentColor; opacity: 0; animation: pulse 2.2s ease-out infinite; }
+    .status-in-progress .dot { background: transparent; border: 1.75px solid currentColor; }
+    .status-in-progress .dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(currentColor 0 50%, transparent 0); transform: scale(.55); }
+    .features { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .95rem; line-height: 1.45; }
+    .features li { display: inline-flex; align-items: baseline; gap: 6px; }
+    .features li::before { content: ""; flex: none; width: 10px; height: 6px; border: solid var(--_accent); border-width: 0 0 2px 2px; transform: translateY(-3px) rotate(-45deg); }
+    .features li[hidden] { display: none; }
+    .more {
+      appearance: none; border: 0; background: none; padding: 0;
+      color: var(--_accent); font: 600 .95rem/1.45 var(--_body-font);
+      text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+    }
+    .more:focus-visible { outline: 3px solid var(--_focus); outline-offset: 2px; border-radius: 2px; }
+
+    /* 3 · company */
+    .company { display: flex; flex-direction: column; gap: 4px; padding-top: 14px; border-top: 1px solid var(--_line); }
+    .company-name { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font: 700 1rem/1.3 var(--_body-font); }
+    ::slotted([slot="blurb"]) {
+      margin: 0 !important;
+      color: var(--_muted) !important;
+      font-family: var(--_body-font) !important;
+      font-size: .95rem !important;
+      line-height: 1.5 !important;
+    }
+
+    /* 4 · industry, feature */
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border: 1px solid color-mix(in srgb, var(--_text) 22%, transparent); border-radius: 6px; color: var(--_muted); font: 600 12px/1 var(--_body-font); letter-spacing: .02em; }
+
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+    /* phones and narrow blocks: text first, the demo below it at full width */
+    @container (max-width: 760px) {
+      .hero { flex-direction: column; align-items: stretch; min-height: 0; }
+      .content { width: 100%; padding: 24px 20px 22px; }
+      .media { position: relative; inset: auto; width: 100%; order: 2; }
+      .fade { display: none; }
+    }
+
+    @keyframes pulse { 0% { opacity: .9; transform: scale(.6); } 80%, 100% { opacity: 0; transform: scale(1.6); } }
+    @media (prefers-reduced-motion: reduce) {
+      .status-live .dot::after { animation: none; }
+      .media video { display: none; }
+    }
+  `;
+
+  class CaseStudyHeader extends HTMLElement {
+    static get observedAttributes() {
+      return ['status', 'role', 'duration', 'platforms', 'tools', 'features', 'max-features', 'company',
+        'protected', 'confidential', 'industry', 'feature', 'video', 'poster', 'media-color'];
+    }
+
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.innerHTML = `
+        <style>${HEADER_CSS}</style>
+        <header class="hero" part="hero">
+          <div class="media" part="media" aria-hidden="true">
+            <img class="poster" alt="" decoding="async" fetchpriority="high">
+            <video muted playsinline loop preload="none" tabindex="-1" disablepictureinpicture disableremoteplayback></video>
+          </div>
+          <div class="fade"></div>
+          <div class="content">
+            <slot name="title"></slot>
+            <div class="details"></div>
+            <div class="company"><p class="company-name"></p><slot name="blurb"></slot></div>
+            <ul class="tags" aria-label="Industry and feature"></ul>
+          </div>
+        </header>`;
+      const $ = (s) => this.shadowRoot.querySelector(s);
+      this._img = $('.poster'); this._video = $('video'); this._media = $('.media');
+      this._details = $('.details'); this._company = $('.company-name'); this._tags = $('.tags');
+      this._expanded = false;
+      this._video.addEventListener('playing', () => this.setAttribute('data-playing', ''));
+      this._onMQ = () => this._sync();
+    }
+
+    connectedCallback() {
+      this._render();
+      this._io = new IntersectionObserver(([e]) => { this._visible = e.isIntersecting; this._sync(); }, { threshold: 0.15 });
+      this._io.observe(this);
+      mqReduce.addEventListener?.('change', this._onMQ);
+    }
+    disconnectedCallback() { this._io?.disconnect(); mqReduce.removeEventListener?.('change', this._onMQ); this._video.pause(); }
+    attributeChangedCallback() { if (this.isConnected) this._render(); }
+
+    _list(name, sep) { return (this.getAttribute(name) || '').split(sep).map((s) => s.trim()).filter(Boolean); }
+
+    _render() {
+      const a = (n) => this.getAttribute(n) || '';
+      const status = a('status');
+      const chip = status === 'live' ? '<span class="chip status-live"><span class="dot" aria-hidden="true"></span>Live</span>'
+        : status === 'in-progress' ? '<span class="chip status-in-progress"><span class="dot" aria-hidden="true"></span>In progress</span>' : '';
+      const platforms = this._list('platforms', ',').map((p) => PLATFORM_NAMES[p.toLowerCase()] || p).join(', ');
+      const facts = [['Role', a('role')], ['Duration', a('duration')], ['Platforms', platforms]].filter(([, v]) => v)
+        .map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('');
+      const tools = this._list('tools', ',');
+      const feats = this._list('features', ';');
+      const max = parseInt(a('max-features'), 10) || 4;
+      const cut = !this._expanded && feats.length > max + 1 ? max : feats.length; // never hide just one
+      this._details.innerHTML = `
+        ${chip ? `<p class="status"><span class="sr">Status: </span>${chip}</p>` : ''}
+        ${facts ? `<dl class="facts">${facts}</dl>` : ''}
+        ${tools.length ? `<div class="group"><span class="label" id="tl">Tools</span><ul class="tools" aria-labelledby="tl">${tools.map((t) => `<li class="chip">${esc(t)}</li>`).join('')}</ul></div>` : ''}
+        ${feats.length ? `<div class="group"><span class="label" id="fl">Completed</span><ul class="features" id="fs" aria-labelledby="fl">${
+          feats.map((f, i) => `<li${i >= cut ? ' hidden' : ''}>${esc(f)}</li>`).join('')}${
+          feats.length > cut || this._expanded && feats.length > max + 1 ? `<li class="more-item"><button class="more" type="button" aria-expanded="${this._expanded}" aria-controls="fs">${this._expanded ? 'Show less' : `+${feats.length - cut} more`}</button></li>` : ''}</ul></div>` : ''}`;
+      this._details.querySelector('.more')?.addEventListener('click', () => { this._expanded = !this._expanded; this._render(); this._details.querySelector('.more')?.focus(); });
+
+      const isProtected = this.hasAttribute('protected');
+      const reason = this.hasAttribute('confidential') ? (a('confidential') || 'Confidential') : '';
+      const access = isProtected && reason ? `<span class="chip">${ICON.lock}<span aria-hidden="true">${esc(reason)}</span><span class="sr">Password protected, ${esc(reason)}</span></span>`
+        : isProtected ? `<span class="chip">${ICON.lock}Password protected</span>`
+        : reason ? `<span class="chip">${ICON.shield}${esc(reason)}</span>` : '';
+      this._company.innerHTML = `${esc(a('company'))}${access}`;
+      this._company.hidden = !a('company') && !access;
+      this._tags.innerHTML = [a('industry'), a('feature')].filter(Boolean).map((t) => `<li class="tag">${esc(t)}</li>`).join('');
+
+      if (a('media-color')) this.style.setProperty('--_media-bg', a('media-color')); else this.style.removeProperty('--_media-bg');
+      const poster = a('poster');
+      if (poster && this._img.getAttribute('src') !== poster) this._img.src = poster;
+      this._media.hidden = !poster && !a('video');
+      this._sync();
+    }
+
+    /* plays while the header is on screen; never loads the video for reduced-motion visitors */
+    _sync() {
+      const src = this.getAttribute('video');
+      if (!src || mqReduce.matches || !this._visible) { this._video.pause(); this.removeAttribute('data-playing'); return; }
+      if (this._video.getAttribute('src') !== src) { this._video.src = src; this._video.preload = 'auto'; }
+      this._video.play().catch(() => {}); // autoplay refused (e.g. Low Power Mode): poster stays
+    }
+  }
+
   customElements.define('case-study-card', CaseStudyCard);
   if (!customElements.get('case-study-grid')) customElements.define('case-study-grid', CaseStudyGrid);
+  if (!customElements.get('case-study-header')) customElements.define('case-study-header', CaseStudyHeader);
 })();

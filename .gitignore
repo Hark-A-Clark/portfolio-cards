@@ -2,3 +2,5 @@
 node_modules/
 raw/
 *.sb-*
+tools/headers.json
+private/

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Header</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* stand-ins for the Squarespace theme variables the component reads */
+  :root {
+    --heading-font-font-family: "Young Serif", Georgia, serif;
+    --body-font-font-family: Roboto, system-ui, sans-serif;
+    --paragraphMediumColor: #182a39;
+    --siteBackgroundColor: hsla(186.67, 36%, 95.1%, 1);
+    --primary-button-rounded-border-top-left-radius: 45px;
+  }
+  body { margin: 0; background: var(--siteBackgroundColor); color: #182a39; font-family: var(--body-font-font-family); }
+  .page { max-width: 1180px; margin: 0 auto; padding: 40px clamp(16px, 4vw, 40px) 80px; }
+  .after { max-width: 720px; margin-top: 48px; font-size: 1.0625rem; line-height: 1.6; }
+  .after h2 { font: 400 1.8rem/1.2 var(--heading-font-font-family); margin: 0 0 12px; }
+  case-study-header:not(:defined) { display: block; min-height: 420px; border-radius: 20px; background: #fff; border: 1px solid rgba(24,42,57,.12); }
+  case-study-header:not(:defined) > * { visibility: hidden; }
+</style>
+<script src="case-study-cards.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <case-study-header status="in-progress" role="Lead Product Designer" duration="Jan – Jun 2026" platforms="iOS, Android"
+      tools="Figma, Claude Code, Maze"
+      features="Onboarding; Offline sync; Shared lists; Notifications; Accessibility audit; Design tokens"
+      company="Example Co." confidential="NDA protected"
+      industry="Productivity" feature="Shared lists"
+      video="../media/design-system.mp4" poster="../media/design-system.jpg" media-color="#eef1f4">
+      <h1 slot="title">Sample Project</h1>
+      <p slot="blurb">One sentence about the company goes here.</p>
+    </case-study-header>
+
+    <section class="after">
+      <h2>The rest of the case study</h2>
+      <p>Placeholder text, so you can see how the header sits above page content.</p>
+    </section>
+  </main>
+</body>
+</html>
