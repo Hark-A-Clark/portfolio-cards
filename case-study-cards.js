@@ -1086,10 +1086,12 @@
   const FOOTER_CSS = /* css */ `
     :host {
       ${TOKENS}
-      --_bg: var(--csc-footer-bg, #10212e);
+      --_bg: var(--csc-footer-bg, #006a72);           /* deep teal: white text 6.3:1 */
+      --_card-bg: var(--csc-footer-card-bg, #005056); /* darker teal behind the project cards */
+      --_eyebrow: var(--csc-footer-label, #d6f5f7);
       --_on: #ffffff;
-      --_on-muted: rgba(255, 255, 255, .76);
-      --_on-line: rgba(255, 255, 255, .14);
+      --_on-muted: rgba(255, 255, 255, .82);
+      --_on-line: rgba(255, 255, 255, .18);
       --_on-accent: var(--csc-footer-accent, #8fdde3);
       display: block;
       container-type: inline-size;
@@ -1106,7 +1108,7 @@
       background: var(--_bg);
       border-radius: var(--_card-radius);
     }
-    .eyebrow { margin: 0 0 16px; color: var(--_on-accent); font: 700 12px/1 var(--_body-font); letter-spacing: .1em; text-transform: uppercase; }
+    .eyebrow { margin: 0 0 16px; color: var(--_eyebrow); font: 700 12px/1 var(--_body-font); letter-spacing: .1em; text-transform: uppercase; }
 
     /* more projects: text-only compact cards with the homepage cards' hard offset shadow, in each project's colour */
     .projects ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 18px 20px; padding: 0 8px 8px 0; }
@@ -1116,7 +1118,7 @@
       display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px;
       height: 100%; padding: 14px 16px;
       border-radius: 12px;
-      background: #1b2e3c;
+      background: var(--_card-bg);
       border: 1px solid var(--_on-line);
       box-shadow: 6px 6px 0 var(--_shadow);
       color: var(--_on); text-decoration: none;
@@ -1139,7 +1141,7 @@
     .locked { background: rgba(255, 255, 255, .14); color: var(--_on); }
     .unlocked { background: transparent; color: var(--_on-accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--_on-accent) 60%, transparent); }
     /* the page you're on */
-    .proj.is-current { background: color-mix(in srgb, var(--_on-accent) 14%, #1b2e3c); border-color: var(--_on-accent); }
+    .proj.is-current { background: color-mix(in srgb, var(--_on-accent) 16%, var(--_card-bg)); border-color: var(--_on-accent); }
 
     /* contact */
     .contact { display: flex; flex-direction: column; gap: 6px; }
