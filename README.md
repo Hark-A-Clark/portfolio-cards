@@ -25,10 +25,10 @@ Code Blocks with scripts and Code Injection both need a Core plan or higher.
 
 ### 1. Host the script
 
-The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.3.0):
+The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release (currently 1.3.1):
 
 ```
-https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.3.0/case-study-cards.min.js
+https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.3.1/case-study-cards.min.js
 ```
 
 jsDelivr creates the `.min.js` version automatically. Because the URL is pinned to a version, edits only go live when you publish a new release and update the URL in Code Injection.
@@ -37,11 +37,11 @@ To release a change:
 
 ```bash
 git commit -am "Describe the change"
-git tag 1.3.1
+git tag 1.3.2
 git push origin main --tags
 ```
 
-Then change the version in the URL (for example `@1.3.0` to `@1.2.2`) in Code Injection.
+Then change the version in the URL (for example `@1.3.1` to `@1.2.2`) in Code Injection.
 
 ### 2. Add the header code once
 
@@ -52,7 +52,7 @@ Go to Settings → Developer Tools → Code Injection → Header and paste:
   case-study-card:not(:defined) { display: block; min-height: 420px; border-radius: 20px; background: #fff; border: 1px solid rgba(24,42,57,.12); }
   case-study-card:not(:defined) > * { visibility: hidden; }
 </style>
-<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.3.0/case-study-cards.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.3.1/case-study-cards.min.js" defer></script>
 ```
 
 The style rule shows a grey placeholder for the split second before the script loads.
@@ -199,8 +199,8 @@ Put one Code Block at the top of a project page:
 | `features` | Completed features, separated with `;`. Shows `max-features` (default 4) and a "+N more" button for the rest. |
 | `company`, `protected`, `confidential` | Company name with the same single access tag the cards use. The blurb goes in `slot="blurb"`. |
 | `industry`, `feature` | Two small tags at the bottom. |
-| `video`, `poster`, `media-color` | The demo, pinned right and faded behind the text. `media-color` fills the frame while it loads; use the clip's panel colour. |
+| `video`, `poster`, `media-color` | The demo fills the whole header as its background, under a dark scrim that keeps the text readable. `media-color` fills the header while it loads; use the clip's panel colour. Change the scrim with `--csc-header-overlay: 11, 26, 38` (an RGB triple). |
 
-On blocks narrower than 760px the text comes first and the demo sits below it at full width. The demo plays while the header is on screen and never loads for visitors who turn off animation. Use the `h1` for the project name and remove Squarespace's own page title text so it isn't repeated.
+On blocks narrower than 760px the demo shows across the top and fades into the scrim under the text. The demo plays while the header is on screen and never loads for visitors who turn off animation. Use the `h1` for the project name and remove Squarespace's own page title text so it isn't repeated.
 
 Content for real (and password-protected) project pages is kept in the git-ignored `private/` folder, so it never lands in this public repo.
