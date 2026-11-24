@@ -1,0 +1,164 @@
+# Case Study Cards
+
+Two web components for showing case studies on a Squarespace site:
+
+- `<case-study-card>`: one card with an animated demo, status, company › product › feature, a password and NDA label, year and platforms.
+- `<case-study-grid>`: lays the cards out and fills any gap in the last row with an "Up next" tile.
+
+Each card keeps its styles in Shadow DOM, so the cards and Squarespace can't restyle each other. Titles and descriptions are ordinary HTML in the page, so search engines can read them.
+
+## Files
+
+| File | What it is |
+|---|---|
+| `case-study-cards.js` | The component. This is the only file the live site needs. |
+| `demo/index.html` | Preview page with five sample cards and width/playback switches. |
+| `demo/media/` | Placeholder demo clips and posters. Replace them with your own recordings. |
+| `tools/` | `record.html` records the placeholder clips in the browser; `serve.mjs` runs the demo locally (`node tools/serve.mjs`, then open http://localhost:4777/demo/). You don't need these for the live site. |
+
+## Setup on Squarespace
+
+Code Blocks with scripts and Code Injection both need a Core plan or higher.
+
+### 1. Host the script
+
+The script is hosted in the public repo [Hark-A-Clark/portfolio-cards](https://github.com/Hark-A-Clark/portfolio-cards), and jsDelivr serves the tagged release:
+
+```
+https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.0.0/case-study-cards.min.js
+```
+
+jsDelivr creates the `.min.js` version automatically. Because the URL is pinned to `@1.0.0`, edits only go live when you publish a new release and update the URL in Code Injection.
+
+To release a change:
+
+```bash
+git commit -am "Describe the change"
+git tag 1.0.1
+git push origin main --tags
+```
+
+Then change `@1.0.0` to `@1.0.1` in Code Injection.
+
+### 2. Add the header code once
+
+Go to Settings → Developer Tools → Code Injection → Header and paste:
+
+```html
+<style>
+  case-study-card:not(:defined) { display: block; min-height: 420px; border-radius: 20px; background: #fff; border: 1px solid rgba(24,42,57,.12); }
+  case-study-card:not(:defined) > * { visibility: hidden; }
+</style>
+<script src="https://cdn.jsdelivr.net/gh/Hark-A-Clark/portfolio-cards@1.0.0/case-study-cards.min.js" defer></script>
+```
+
+The style rule shows a grey placeholder for the split second before the script loads.
+
+### 3. Add one Code Block with the grid
+
+```html
+<case-study-grid next-href="/contact" next-label="Get in touch">
+  <case-study-card
+    href="/work/bill-split"
+    status="in-progress"
+    protected
+    confidential="NDA protected"
+    company="Fintech client" product="Payments app" feature="Shared bill splitting"
+    year="2026" platforms="iOS, Android"
+    video="https://…/bill-split.mp4" poster="https://…/bill-split.jpg"
+    gradient-from="#d9d6ff" gradient-to="#ffd1c2" gradient-angle="120">
+    <h3 slot="title">Splitting a bill without the awkward follow-up texts</h3>
+    <p slot="description">Uneven splits, partial payments and reminders in one flow.</p>
+  </case-study-card>
+  <!-- more cards -->
+</case-study-grid>
+```
+
+Scripts don't run inside Squarespace's editor, so cards look plain there. Check them on the preview or live site.
+
+## Card options
+
+| Attribute | Example | Notes |
+|---|---|---|
+| `href` | `/work/planet-a` | The whole card links here. |
+| `target` | `_blank` | Optional. |
+| `status` | `live` or `in-progress` | Shown on the demo image, bottom-left, opposite the "Preview" label. |
+| `protected` | (no value) | Shows a lock tag. This is only a label; the protection itself is Squarespace's page password. |
+| `confidential` | `NDA protected` | The reason the work is restricted. Use it when `company` is a stand-in like "FinTech client". |
+| `company`, `product`, `feature` | `Planet A`, `Field Guide`, `Search` | Shown as Company › Product › Feature. Any can be left out. |
+| `year` | `2026` | |
+| `platforms` | `iOS, Android, Web` | Comma-separated. Common names are capitalised for you (`ios` → iOS). |
+| `video` | `…/demo.mp4` | Muted, looping MP4 (H.264). Aim for 2–3 MB or less. |
+| `poster` | `…/demo.jpg` | Still frame shown before playback. The loading skeleton stays until this has loaded. |
+| `gradient-from`, `gradient-via`, `gradient-to`, `gradient-angle` | `#c8ecd6`, `#7cc4a0`, `160` | Background behind the demo. `gradient-via` is optional. |
+| `gradient` | `radial-gradient(…)` | Any CSS background. Use instead of the from/to attributes for more complex gradients. |
+| `shadow-color` | `#2f7f87` | Color of the offset shadow. Defaults to a darker shade of `gradient-to`. |
+| `cta` | `Read the story` | Button text. Defaults to "View case study"; `cta=""` hides it. |
+| `media-ratio` | `16/10` | Shape of the demo frame. Default 16/10. |
+| `play-mode` | `auto`, `hover`, `scroll`, `none` | Usually set on the grid instead. |
+
+A card shows **one** access tag. With both `protected` and `confidential`, it shows a lock icon with the reason ("🔒 NDA protected"), and screen readers hear "Password protected, NDA protected". With only `protected` it reads "Password protected"; with only `confidential` it shows a shield icon with the reason.
+
+Put the title in an element with `slot="title"`. Use whatever heading level fits the page: `h2` if the cards sit directly under the page title, `h3` under a section heading. The description goes in an element with `slot="description"`.
+
+## Grid options
+
+| Attribute | Default | Notes |
+|---|---|---|
+| `play-mode` | `auto` | `auto` plays on hover with a mouse and plays the card in the middle of the screen on touch devices. |
+| `two-up-from` | `600` | Width of the grid in px where it switches to 2 across. |
+| `three-up-from` | `900` | Width where it switches to 3 across. |
+| `horizontal-from` | `1320` | Width where cards become 1 per row with the image beside the text. Lower it if your Squarespace content area never gets this wide. |
+| `alternate` | on | In the wide layout, rows alternate image-left and image-right. Set `alternate="false"` to keep images on the left. |
+| `next-href` | none | Makes the "Up next" tile a link, for example `/contact`. |
+| `next-eyebrow`, `next-title`, `next-text`, `next-label` | "Up next", "New case study in the works", … | Text in the "Up next" tile. |
+| `no-next` | (no value) | Leaves the gap empty instead. |
+
+These are widths of the grid itself, not the browser window, so the grid lays out correctly in any Squarespace section.
+
+## Styling
+
+The cards are styled to match adrianaclark.com:
+
+- **Fonts:** Young Serif titles and Roboto text, read from Squarespace's own `--heading-font-font-family` and `--body-font-font-family` variables. Changing fonts in Site Styles changes the cards too.
+- **Colors:** text color comes from Squarespace's `--paragraphMediumColor`. The skeleton background comes from `--siteBackgroundColor`.
+- **Hero panel:** a solid color panel with a hard offset shadow, like the image panels on your homepage. On hover the panel lifts up-left and the shadow grows. The shadow is a darker shade of `gradient-to` unless you set `shadow-color`.
+- **Button:** the "View case study" pill is outlined and fills on hover, matching your "View Case Study" buttons and their 45px corner radius. Change its text with `cta="…"`, or hide it with `cta=""`.
+- **Wide screens:** rows alternate image-left and image-right like your homepage list. Add `alternate="false"` to the grid to keep images on the left.
+
+### Accent color and contrast
+
+The cards use a darker teal, `#007c85`, for the button and eyebrow text instead of your site's `#00adb8`. On your pale aqua background, `#00adb8` has a 2.6:1 contrast ratio, below the 4.5:1 that WCAG AA requires for text. `#007c85` is 4.5:1. Your site's own "View Case Study" buttons and teal headings have the same issue. Switching your Squarespace accent to `#007c85` would fix them and keep the cards matching.
+
+### Overrides
+
+Override colors and sizes with CSS custom properties in Design → Custom CSS:
+
+```css
+case-study-card {
+  --csc-accent: #007c85;        /* button and focus color */
+  --csc-panel-radius: 12px;
+  --csc-shadow-offset: 8px;
+  --csc-title-size: 1.6rem;     /* 2.6rem in the wide layout: --csc-title-size-lg */
+}
+case-study-grid {
+  --csc-gap: 40px;
+  --csc-next-1: #4fb0ba;        /* the four colors in the "Up next" tile */
+  --csc-next-2: #de8ff2;
+  --csc-next-3: #e3692b;
+  --csc-next-4: #f2b935;
+}
+```
+
+### Posters and videos
+
+Your current homepage images have the colored panel and shadow baked in. For the cards, export only the device mockup (laptop and phone) on a transparent or neutral background. The component draws the panel and shadow itself, so the color can change without re-exporting.
+
+## Behavior
+
+- **Loading:** each card shows a skeleton until its poster has loaded and decoded. Posters only start loading when a card comes within 400px of the screen.
+- **Video loading:** the video file isn't downloaded until the first time it plays.
+- **Desktop:** plays on hover or keyboard focus, and pauses when the pointer leaves.
+- **Touch:** whichever card is nearest the middle of the screen plays, one at a time.
+- **Reduced motion:** visitors who turn off animations see poster images only, and other motion stops.
+- **iOS Low Power Mode:** autoplay is blocked here, so the poster stays visible.

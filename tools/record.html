@@ -1,0 +1,76 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Record demo clips</title>
+<style>body{font:14px system-ui;margin:20px}canvas{width:640px;border:1px solid #ccc}</style>
+<p id="log">Ready. Call record() to render all clips.</p>
+<canvas id="c"></canvas>
+<script type="module">
+  import { SCENES, W, H } from './scenes.js';
+  const SCALE = 4 / 3;               // 1280×800 output
+  const DUR = 6000, FADE = 600;      // ms; last 600ms cross-fades to frame 0 for a seamless loop
+  const cv = document.getElementById('c');
+  cv.width = W * SCALE; cv.height = H * SCALE;
+  const ctx = cv.getContext('2d');
+  const log = (m) => (document.getElementById('log').textContent = m);
+
+  function draw(scene, t) {
+    ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+    ctx.globalAlpha = 1;
+    scene(ctx, t);
+    const f = (t * DUR - (DUR - FADE)) / FADE;
+    if (f > 0) {
+      // draw frame 0 over the top, fading in
+      const off = draw.off || (draw.off = Object.assign(document.createElement('canvas'), { width: cv.width, height: cv.height }));
+      const o = off.getContext('2d');
+      o.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+      scene(o, 0);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalAlpha = Math.min(1, f * f * (3 - 2 * f));
+      ctx.drawImage(off, 0, 0);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  const save = (name, blob) => fetch('/save/' + name, { method: 'POST', body: blob }).then((r) => { if (!r.ok) throw new Error('save failed ' + name); });
+
+  async function recordOne(name, scene, mime, ext) {
+    draw(scene, 0);
+    const stream = cv.captureStream(30);
+    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 1_400_000 });
+    const chunks = [];
+    rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    const stopped = new Promise((r) => (rec.onstop = r));
+    rec.start();
+    const t0 = performance.now();
+    await new Promise((resolve) => {
+      const tick = () => {
+        const el = performance.now() - t0;
+        if (el >= DUR) { draw(scene, 0); resolve(); return; }
+        draw(scene, el / DUR);
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    rec.stop();
+    await stopped;
+    await save(`${name}.${ext}`, new Blob(chunks, { type: mime }));
+    // poster: the moment with the most on screen
+    draw(scene, 0.72);
+    const jpg = await new Promise((r) => cv.toBlob(r, 'image/jpeg', 0.82));
+    await save(`${name}.jpg`, jpg);
+  }
+
+  window.record = async () => {
+    const mime = ['video/mp4;codecs=avc1.42E01F', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9']
+      .find((m) => MediaRecorder.isTypeSupported(m));
+    const ext = mime.startsWith('video/mp4') ? 'mp4' : 'webm';
+    for (const [name, scene] of Object.entries(SCENES)) {
+      log('Recording ' + name + ' …');
+      await recordOne(name, scene, mime, ext);
+    }
+    log('Done: ' + mime);
+    return mime;
+  };
+  window.preview = (name, t) => draw(SCENES[name], t);
+  draw(SCENES['field-guide'], .72);
+</script>
