@@ -56,7 +56,7 @@ _contact_file = ROOT / "private" / "contact.json"  # name, role, email, linkedin
 CONTACT = json.loads(_contact_file.read_text()) if _contact_file.exists() else {"name": "Your Name", "role": "Your role", "email": "you@example.com", "linkedin": "https://www.linkedin.com/"}
 FOOTER = (f'<case-study-footer name="{html.escape(CONTACT["name"], quote=True)}" role="{html.escape(CONTACT["role"], quote=True)}"\n'
           f'  email="{html.escape(CONTACT["email"], quote=True)}" linkedin="{html.escape(CONTACT["linkedin"], quote=True)}">\n'
-          + "".join(f'  <a href="{c["href"]}" data-company="{html.escape(c["company"], quote=True)}" data-poster="{CDN}/{c["media"]}.jpg">{html.escape(c["title"])}</a>\n' for c in CARDS)
+          + "".join(f'  <a href="{c["href"]}" data-company="{html.escape(c["company"], quote=True)}" data-color="{c["colors"][1]}"{" data-protected" if c.get("protected") else ""}>{html.escape(c["title"])}</a>\n' for c in CARDS)
           + '</case-study-footer>\n')
 (ROOT / "private").mkdir(exist_ok=True)
 (ROOT / "private" / "squarespace-footer.html").write_text(FOOTER)  # holds contact details, so kept out of the public repo

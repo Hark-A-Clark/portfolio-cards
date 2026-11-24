@@ -1107,33 +1107,37 @@
     }
     .eyebrow { margin: 0 0 16px; color: var(--_on-accent); font: 700 12px/1 var(--_body-font); letter-spacing: .1em; text-transform: uppercase; }
 
-    /* more projects: compact cards */
-    .projects ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 12px; }
+    /* more projects: text-only compact cards with the homepage cards' hard offset shadow, in each project's colour */
+    .projects ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 18px 20px; padding: 0 8px 8px 0; }
     .proj {
-      display: grid; grid-template-columns: 104px minmax(0, 1fr) auto; align-items: center; gap: 14px;
-      height: 100%; padding: 10px 14px 10px 10px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, .05);
+      --_c: var(--_on-accent);
+      --_shadow: color-mix(in srgb, var(--_c) 72%, #0b1a26);
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px;
+      height: 100%; padding: 14px 16px;
+      border-radius: 12px;
+      background: #1b2e3c;
       border: 1px solid var(--_on-line);
+      box-shadow: 6px 6px 0 var(--_shadow);
       color: var(--_on); text-decoration: none;
-      transition: background-color .25s ease, border-color .25s ease;
+      transition: transform .3s var(--_ease), box-shadow .3s var(--_ease), border-color .25s ease;
     }
-    .proj:hover { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .3); }
-    .proj:focus-visible { outline: 3px solid var(--_on-accent); outline-offset: 2px; }
-    .thumb { aspect-ratio: 16 / 9; width: 100%; border-radius: 8px; object-fit: cover; background: rgba(255, 255, 255, .08); display: block; }
+    .proj:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--_shadow); border-color: rgba(255, 255, 255, .3); }
+    .proj:focus-visible { outline: 3px solid var(--_on-accent); outline-offset: 3px; }
+    .proj-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .proj-title { display: block; font: 400 1.12rem/1.2 var(--_heading-font); letter-spacing: -0.01em; }
     .proj-company { display: block; margin-top: 4px; color: var(--_on-muted); font-size: 13px; line-height: 1.3; }
     .go { width: 16px; height: 16px; color: var(--_on-muted); transition: transform .25s ease, color .25s ease; }
     .proj:hover .go { transform: translateX(3px); color: var(--_on); }
-    /* the page you're on */
-    .proj.is-current { background: rgba(143, 221, 227, .12); border-color: var(--_on-accent); box-shadow: inset 3px 0 0 var(--_on-accent); }
-    .proj.is-current:hover { background: rgba(143, 221, 227, .16); border-color: var(--_on-accent); }
-    .here {
-      align-self: center; white-space: nowrap;
-      padding: 4px 9px; border-radius: var(--_pill);
-      background: var(--_on-accent); color: #0b1a26;
-      font: 700 11px/1 var(--_body-font); letter-spacing: .04em; text-transform: uppercase;
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+      height: 20px; padding: 0 8px; border-radius: var(--_pill);
+      font: 700 11px/1 var(--_body-font); letter-spacing: .05em; text-transform: uppercase;
     }
+    .pill svg { width: 10px; height: 10px; flex: none; }
+    .viewing { background: var(--_on-accent); color: #0b1a26; }
+    .locked { background: rgba(255, 255, 255, .14); color: var(--_on); }
+    /* the page you're on */
+    .proj.is-current { background: color-mix(in srgb, var(--_on-accent) 14%, #1b2e3c); border-color: var(--_on-accent); }
 
     /* contact */
     .contact { display: flex; flex-direction: column; gap: 6px; }
@@ -1162,7 +1166,7 @@
       .band.with-projects .contact { padding-top: 28px; border-top: 1px solid var(--_on-line); }
     }
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-    @media (prefers-reduced-motion: reduce) { .proj, .go, .btn { transition: none; } }
+    @media (prefers-reduced-motion: reduce) { .proj, .go, .btn { transition: none; } .proj:hover { transform: none; } }
   `;
 
   class CaseStudyFooter extends HTMLElement {
@@ -1186,7 +1190,8 @@
       const exclude = this.hasAttribute('exclude-current');
       // projects are plain links inside the element, so they also work for search engines and without JS
       const projects = hideOn.includes(here) ? [] : [...this.querySelectorAll('a[href]')]
-        .map((el) => ({ href: el.getAttribute('href'), title: el.textContent.trim(), company: el.dataset.company || '', poster: el.dataset.poster || '',
+        .map((el) => ({ href: el.getAttribute('href'), title: el.textContent.trim(), company: el.dataset.company || '',
+          color: el.dataset.color || '', locked: el.hasAttribute('data-protected'),
           current: norm(new URL(el.href, location.href).pathname) === here }))
         .filter((p) => !(exclude && p.current));
 
@@ -1196,10 +1201,9 @@
         <div class="band${projects.length ? ' with-projects' : ''}" part="band">
           ${projects.length ? `<nav class="projects" aria-labelledby="mp">
             <h2 class="eyebrow" id="mp">${esc(a('heading', 'Projects'))}</h2>
-            <ul>${projects.map((p) => `<li><a class="proj${p.current ? ' is-current' : ''}" href="${esc(p.href)}"${p.current ? ' aria-current="page"' : ''}>
-              ${p.poster ? `<img class="thumb" src="${esc(p.poster)}" alt="" loading="lazy" decoding="async">` : '<span class="thumb"></span>'}
-              <span><span class="proj-title">${esc(p.title)}</span>${p.company ? `<span class="proj-company">${esc(p.company)}</span>` : ''}</span>
-              ${p.current ? `<span class="here">${esc(a('current-label', "You're here"))}</span>` : `<span class="go">${FOOTER_ICON.arrow}</span>`}</a></li>`).join('')}</ul>
+            <ul>${projects.map((p) => `<li><a class="proj${p.current ? ' is-current' : ''}" href="${esc(p.href)}"${p.current ? ' aria-current="page"' : ''}${/^#[0-9a-f]{3,8}$/i.test(p.color) ? ` style="--_c:${p.color}"` : ''}>
+              <span>${p.current || p.locked ? `<span class="proj-tags">${p.current ? `<span class="pill viewing">${esc(a('current-label', 'Viewing'))}</span>` : ''}${p.locked ? `<span class="pill locked">${ICON.lock}<span aria-hidden="true">Locked</span><span class="sr">Password protected</span></span>` : ''}</span>` : ''}<span class="proj-title">${esc(p.title)}</span>${p.company ? `<span class="proj-company">${esc(p.company)}</span>` : ''}</span>
+              ${p.current ? '' : `<span class="go">${FOOTER_ICON.arrow}</span>`}</a></li>`).join('')}</ul>
           </nav>` : ''}
           <div class="contact">
             ${projects.length ? '<h2 class="eyebrow">Get in touch</h2>' : ''}
