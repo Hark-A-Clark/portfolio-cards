@@ -388,6 +388,7 @@
     /* ---------- mockup: the clip already contains its device mockup and coloured panel ----------
        The frame keeps its size (so heroes line up across a row) but drops its shadow, and the image/video
        fill the whole hero instead. Set gradient-from/to to the clip's panel colour so any edges blend in. */
+    :host([mockup]) .media { overflow: hidden; } /* keeps the hover zoom inside the hero */
     :host([mockup]) .frame { position: static; background: none; box-shadow: none; border-radius: 0; overflow: visible; transform: none; }
     :host([mockup]:hover) .frame, :host([mockup]) .card:has(.title-link:focus-visible) .frame { transform: none; box-shadow: none; }
     :host([mockup]) .frame img, :host([mockup]) .frame video { object-fit: contain; transition: opacity .3s ease, transform .5s var(--_ease); }
